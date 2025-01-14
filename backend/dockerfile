@@ -1,0 +1,15 @@
+# Dockerfile for Flask app
+FROM python:3.9
+
+# Set the working directory
+WORKDIR /app
+
+# Copy application code to the container
+COPY . /app
+
+# Install dependencies from requirements.txt
+COPY requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Command to run the Flask app
+CMD ["python", "app.py"]
