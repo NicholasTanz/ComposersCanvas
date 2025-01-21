@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VexFlow Note Deletion</title>
+    <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
+    <style>
+        .selected-note {
+            fill: orange !important; /* Highlight selected note */
+            stroke: orange !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="output"></div>
+    <script>
+        window.onload = () => {
+            const { Factory } = Vex.Flow;
+
+            // Create a VexFlow Factory and Renderer
+            const vf = new Factory({
+                renderer: { elementId: 'output', width: 500, height: 200 },
+            });
+
+            // Create a Stave and add clef/time signature
+            const score = vf.EasyScore();
+            const system = vf.System();
+
+            const stave = system.addStave({
+                voices: [
+                    score.voice(score.notes('C#5/q, B4, A4, G#4', { stem: 'up' })),
+                ],
+            });
+
+            stave.addClef('treble').addTimeSignature('4/4');
+
+            vf.draw();
+
+            // Keep track of the currently selected note
+            let selectedNote = null;
+
+            // Add click events to notes to select them
+            const svgElement = document.getElementById('output').querySelector('svg');
+            const noteHeads = svgElement.querySelectorAll('.vf-notehead');
+
+            noteHeads.forEach((note) => {
+                // Add click event to select a note
+                note.addEventListener('click', () => {
+                    // Deselect the previously selected note
+                    if (selectedNote) {
+                        selectedNote.classList.remove('selected-note');
+                    }
+
+                    // Select the current note
+                    selectedNote = note;
+                    note.classList.add('selected-note');
+                });
+            });
+
+            // Add a keydown listener to delete the selected note
+            window.addEventListener('keydown', (event) => {
+                if (event.key === 'Delete' && selectedNote) {
+                    // Remove the selected note from the SVG
+                    selectedNote.remove();
+
+                    // Clear the selected note reference
+                    selectedNote = null;
+                }
+            });
+        };
+    </script>
+</body>
+</html>
