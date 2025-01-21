@@ -25,10 +25,11 @@ jobs:
 
       # Install dependencies
       - name: Intstall dependencies
-        run: pip install ruff
-        run: pip install bandit
+        run: pip install ruff bandit
 
       # Run bandit & ruff
-      - name: Run bandit & ruff
+      - name: Run ruff
         run: ruff check backend/
+
+      - name: run bandit
         run: bandit -r backend/
