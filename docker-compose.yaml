@@ -1,0 +1,24 @@
+version: '3'
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgres://username:password@db/music_composer
+    depends_on:
+      - db  # Ensure backend starts after db
+
+  db:
+    image: postgres
+    environment:
+      POSTGRES_USER: username
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: music_composer
+    ports:
+      - "5433:5432" # command to enter the container: docker exec -it ece49595_os_test-db-1 psql -U username -d music_composer
