@@ -1,4 +1,4 @@
-name: boilerplate
+name: Lint Python code with Ruff & Bandit
 
 on:
   push:
@@ -9,9 +9,26 @@ on:
       - main
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout the repository
       - name: Checkout code
         uses: actions/checkout@v3
+
+      # Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      # Install dependencies
+      - name: Intstall dependencies
+        run: pip install ruff
+        run: pip install bandit
+
+      # Run bandit & ruff
+      - name: Run bandit & ruff
+        run: ruff check backend/
+        run: bandit -r backend/

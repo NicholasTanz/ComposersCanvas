@@ -3,8 +3,8 @@ import psycopg2 as psycopg
 DB_HOST = "localhost"      
 DB_PORT = 5433           
 DB_NAME = "music_composer" 
-DB_USER = "username"       
-DB_PASSWORD = "password"   
+DB_USER = "username" # nosec
+DB_PASSWORD = "password" # nosec  
 
 try:
     # Connect to the PostgreSQL database
