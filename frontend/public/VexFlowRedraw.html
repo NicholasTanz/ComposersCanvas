@@ -33,7 +33,6 @@
             { key: "g/4", duration: "q" },
             { key: "a/4", duration: "q" },
             { key: "b/4", duration: "q" },
-            { key: "c/5", duration: "q" },
         ];
 
         // Start with the first set of notes
@@ -50,7 +49,7 @@
             stave.setContext(context).draw();
 
             // Create a voice and add the notes
-            const voice = new VF.Voice({ num_beats: 4, beat_value: 4 });
+            const voice = new VF.Voice({ num_beats: currentNotes.length, beat_value: 4 });
             const tickables = currentNotes.map(note => new VF.StaveNote({
                 clef: "treble",
                 keys: [note.key],
