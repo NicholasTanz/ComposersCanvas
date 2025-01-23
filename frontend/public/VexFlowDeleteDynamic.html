@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Highlight Selected Note</title>
+    <script src="https://unpkg.com/vexflow/releases/vexflow-min.js"></script>
+    <style>
+        .selected-note {
+            fill: red !important; /* Highlight selected note */
+            stroke: red !important;
+        }
+    </style>
+</head>
+<body>
+    <div id="my-stave"></div>
+    <script>
+        const VF = Vex.Flow;
+        const divStave = document.getElementById("my-stave");
+        const renderer = new VF.Renderer(divStave, VF.Renderer.Backends.SVG);
+        const context = renderer.getContext();
+
+        // Initial configuration
+        renderer.resize(500, 200); // Set the size of the SVG renderer
+        const width = 400;
+
+        // Array of notes
+        const notes = [
+            { key: "c/4", duration: "q" },
+            { key: "d/4", duration: "q" },
+            { key: "e/4", duration: "q" },
+            { key: "f/4", duration: "q" },
+        ];
+
+        let selectedNoteIndex = null; // Track the selected note index
+        let tickables = []; // Store tickable objects to map with SVG elements
+
+        // Function to render the notes on the stave
+        function renderNotes() {
+            // Clear the context to remove previous notes
+            context.clear();
+
+            // Create the stave and add it to the context
+            const stave = new VF.Stave(10, 40, width);
+            stave.addClef("treble").addTimeSignature("4/4");
+            stave.setContext(context).draw();
+
+            // Create a voice and add the notes
+            const voice = new VF.Voice({ num_beats: 4, beat_value: 4 });
+            tickables = notes.map((note, index) => {
+                const staveNote = new VF.StaveNote({
+                    clef: "treble",
+                    keys: [note.key],
+                    duration: note.duration,
+                });
+
+                // Highlight the selected note
+                if (index === selectedNoteIndex) {
+                    staveNote.setStyle({ fillStyle: "red", strokeStyle: "red" });
+                }
+
+                return staveNote;
+            });
+
+            voice.addTickables(tickables);
+
+            // Format and draw the voice
+            new VF.Formatter().joinVoices([voice]).format([voice], 350);
+            voice.draw(context, stave);
+
+            // Attach click events to the SVG note elements
+            attachClickEvents();
+        }
+
+        function attachClickEvents() {
+            // Find all note groups in the SVG
+            const noteGroups = divStave.querySelectorAll("svg g.vf-stavenote");
+            noteGroups.forEach((group, index) => {
+                group.addEventListener("click", (event) => {
+                    event.stopPropagation(); // Prevent event bubbling
+                    selectedNoteIndex = index; // Set the selected note index
+                    renderNotes(); // Redraw the stave to highlight the selected note
+                });
+            });
+        }
+
+        // Initial rendering of notes
+        renderNotes();
+    </script>
+</body>
+</html>
