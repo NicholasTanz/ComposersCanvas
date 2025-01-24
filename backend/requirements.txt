@@ -1,2 +1,6 @@
-Flask
 Flask-Cors
+Flask
+Flask-SQLAlchemy
+psycopg2
+python-dotenv
+gunicorn
