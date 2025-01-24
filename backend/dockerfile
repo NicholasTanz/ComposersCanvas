@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir -r backend/requirements.txt
 # Set the entrypoint to run the app (only development or production)
 
 # for development
-CMD ["python", "-m", "backend.run"]
+CMD ["python", "-m", "backend.src.run"]
 
 # for production
-# CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "backend.run:app"] 
+# CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "backend.src.run:app"] 
