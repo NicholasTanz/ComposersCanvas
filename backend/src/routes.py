@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from backend.src.models import User, checkUserExists, addUser
+from backend.src.models import checkUserExists, addUser
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
