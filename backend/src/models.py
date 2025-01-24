@@ -37,7 +37,7 @@ def addUser(username, hashed_password, email):
         db.session.add(new_user)
         db.session.commit()
         
-        return jsonify({"message": "User created successfully"}), 201
+        return jsonify({"message": "User created successfully"}), 200
 
     except Exception as e:
         db.session.rollback()
@@ -59,3 +59,27 @@ def checkUserExists(username, email=None):
     '''
     existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
     return existing_user
+
+
+def removeUser(username):
+    '''
+    
+    This function will remove a user from the database.
+
+    Parameters:
+    username (str): The username of the user to be removed.
+
+    Returns:
+    response (json): A json response indicating the status of the operation.
+    
+    '''
+    try:
+        user = User.query.filter_by(username=username).first()
+        db.session.delete(user)
+        db.session.commit()
+        
+        return jsonify({"message": "User removed successfully"}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": str(e)}), 500

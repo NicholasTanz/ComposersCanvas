@@ -1,4 +1,4 @@
-name: Lint Python code with Ruff & Bandit
+name: Backend Tests and Linting.
 
 on:
   push:
@@ -25,7 +25,7 @@ jobs:
 
       # Install dependencies
       - name: Intstall dependencies
-        run: pip install ruff bandit
+        run: pip install -r backend/requirements.txt
 
       # Run bandit & ruff
       - name: Run ruff
@@ -33,3 +33,6 @@ jobs:
 
       - name: run bandit
         run: bandit -c bandit.yaml -r backend/
+      
+      - name: run pytest
+        run: pytest backend/

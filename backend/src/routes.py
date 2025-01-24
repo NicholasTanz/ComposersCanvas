@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from backend.src.models import checkUserExists, addUser
+from .models import checkUserExists, addUser, removeUser
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
@@ -58,6 +58,30 @@ def register_routes(app : Flask):
         
         return jsonify({"message": "Login successful"}), 200
 
+
+    # delete a user from the database.
+    @app.route('/delete_user', methods=['POST'])
+    def delete_user():
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+
+        # Simple validation
+        if not username:
+            return jsonify({"message": "Username is required"}), 400
+
+        # Check if the user exists
+        user = checkUserExists(username)
+        if not user:
+            return jsonify({"message": "User not found"}), 400
+
+        # Check if the password is correct
+        if not check_password_hash(user.password, password):
+            return jsonify({"message": "Invalid credentials"}), 400
+
+        # Remove the user from the database
+        response = removeUser(username)
+        return response
 
     # TODO: Add the following routes to the Flask application.
     # this route will be used to accept a composition and store it in the database.
