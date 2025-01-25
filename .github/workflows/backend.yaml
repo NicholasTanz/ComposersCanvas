@@ -63,7 +63,7 @@ jobs:
           echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> $GITHUB_ENV
 
       - name: Build and start services
-        run: docker-compose up -d --build
+        run: docker-compose -f docker-compose.yaml -f docker-compose.override.yaml up -d --build backend db
 
       - name: Wait for services to be ready
         run: |
@@ -78,4 +78,4 @@ jobs:
           pytest backend/test/
       
       - name: Stop services
-        run: docker-compose down
+        run: docker-compose -f docker-compose.yml -f docker-compose.override.yml down
