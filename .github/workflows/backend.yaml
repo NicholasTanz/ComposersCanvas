@@ -1,0 +1,78 @@
+name: Backend Tests and Linting.
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      # Install dependencies
+      - name: Intstall dependencies
+        run: pip install -r backend/requirements.txt
+
+      # Run bandit & ruff
+      - name: Run ruff
+        run: ruff check backend/
+
+      - name: run bandit
+        run: bandit -c bandit.yaml -r backend/
+      
+  test:
+    needs: lint
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      # Install dependencies
+      - name: Intstall dependencies
+        run: pip install -r backend/requirements.txt
+      
+      - name: Install Docker Compose
+        run: sudo apt-get install -y docker-compose
+        
+      - name: Set environment variables
+        run: |
+          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> $GITHUB_ENV
+          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> $GITHUB_ENV
+          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> $GITHUB_ENV
+
+      - name: Build and start services
+        run: docker-compose up -d --build
+
+      - name: Wait for services to be ready
+        run: |
+          until curl -s http://localhost:5000; do
+            echo "Waiting for Flask app to be ready..."
+            sleep 5
+          done
+
+      - name: Run tests
+        run: |
+          pip install pytest requests
+          pytest tests/
