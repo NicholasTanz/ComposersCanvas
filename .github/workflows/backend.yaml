@@ -75,4 +75,7 @@ jobs:
       - name: Run tests
         run: |
           pip install pytest requests
-          pytest tests/
+          pytest backend/test/
+      
+      - name: Stop services
+        run: docker-compose down
