@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Staff Notes</title>
+    <script src="https://unpkg.com/vexflow/releases/vexflow-min.js"></script>
+    <style>
+        .selected-note {
+            fill: red !important;
+            stroke: red !important;
+        }
+        #notes-display {
+            margin-top: 20px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div id="my-stave"></div>
+    <div id="notes-display"></div> <!-- Area to display the notes array -->
+
+    <script>
+        const VF = Vex.Flow;
+        const divStave = document.getElementById("my-stave");
+        const divNotesDisplay = document.getElementById("notes-display");
+        const renderer = new VF.Renderer(divStave, VF.Renderer.Backends.SVG);
+        const context = renderer.getContext();
+
+        const staveWidth = 400;
+        const rowSpacing = 120;
+
+        let notes = [
+            { key: "c/4", duration: "q" },
+            { key: "d/4", duration: "q" },
+            { key: "e/4", duration: "q" },
+            { key: "f/4", duration: "q" },
+            //{ key: "b/4", duration: "q" }, // B natural note (just B)
+            //{ key: "bb/4", duration: "q" }  // B flat note (with flat symbol)
+        ];
+
+        let selectedNoteIndex = 0;
+
+        const halfSteps = {
+            c: ["c#", "db"],
+            "c#": ["d"],
+            db: ["d"],
+            d: ["d#", "eb"],
+            "d#": ["e"],
+            eb: ["e"],
+            e: ["f"],
+            f: ["f#", "gb"],
+            "f#": ["g"],
+            gb: ["g"],
+            g: ["g#", "ab"],
+            "g#": ["a"],
+            ab: ["a"],
+            a: ["a#", "bb"],
+            "a#": ["b"],
+            bb: ["b"],
+            b: ["c"], // Ensure b maps to c, not bb
+        };
+
+        const reverseHalfSteps = Object.fromEntries(
+            Object.entries(halfSteps).flatMap(([note, options]) =>
+                options.map((nextNote) => [nextNote, note])
+            )
+        );
+
+        function adjustSVGHeight(totalRows) {
+            const newHeight = (totalRows * rowSpacing) + 100;
+            renderer.resize(window.innerWidth, newHeight);
+        }
+
+        function renderNotes() {
+            context.clear();
+
+            divNotesDisplay.innerHTML = "<strong>Notes Array:</strong> " + JSON.stringify(notes, null, 2);
+
+            adjustSVGHeight(1);
+
+            const stave = new VF.Stave(10, 40, staveWidth);
+            stave.addClef("treble").addTimeSignature("4/4");
+            stave.setContext(context).draw();
+
+            const voice = new VF.Voice({ num_beats: 4, beat_value: 4 });
+            const staveNotes = notes.map((note, index) => {
+                const staveNote = new VF.StaveNote({
+                    clef: "treble",
+                    keys: [note.key],
+                    duration: note.duration,
+                });
+
+                const pitch = note.key.split("/")[0]; // Extract pitch (e.g., "c#", "d", "e")
+
+                // Check if the note key contains 'b' (indicating a flat) and apply the flat accidental
+                if (pitch.length > 1 && pitch[1] === "b") {
+                    staveNote.addAccidental(0, new VF.Accidental("b")); // Apply flat accidental
+                } else if (pitch.includes("#")) {
+                    staveNote.addAccidental(0, new VF.Accidental("#")); // Apply sharp accidental
+                }
+
+                if (index === selectedNoteIndex) {
+                    staveNote.setStyle({ fillStyle: "red", strokeStyle: "red" });
+                }
+
+                return staveNote;
+            });
+
+            voice.addTickables(staveNotes);
+
+            new VF.Formatter().joinVoices([voice]).format([voice], staveWidth - 50);
+            voice.draw(context, stave);
+
+            attachClickEvents();
+        }
+
+        function attachClickEvents() {
+            const noteGroups = divStave.querySelectorAll("svg g.vf-stavenote");
+            noteGroups.forEach((group, index) => {
+                group.addEventListener("click", () => {
+                    selectedNoteIndex = index;
+                    renderNotes();
+                });
+            });
+        }
+
+        function moveNoteHalfStep(index, direction) {
+            if (index === null || index < 0 || index >= notes.length) return;
+
+            const [note, octave] = notes[index].key.split("/");
+
+            let newNote;
+            if (direction === "up") {
+                newNote = halfSteps[note] ? halfSteps[note][0] : note;
+                if (newNote === "c") notes[index].key = `${newNote}/${+octave + 1}`;
+                else notes[index].key = `${newNote}/${octave}`;
+            } else if (direction === "down") {
+                newNote = reverseHalfSteps[note] || note;
+                if (newNote === "b") notes[index].key = `${newNote}/${+octave - 1}`;
+                else notes[index].key = `${newNote}/${octave}`;
+            }
+
+            renderNotes();
+        }
+
+        window.addEventListener("keydown", (event) => {
+            if (event.key === "ArrowUp") {
+                moveNoteHalfStep(selectedNoteIndex, "up");
+            } else if (event.key === "ArrowDown") {
+                moveNoteHalfStep(selectedNoteIndex, "down");
+            } else if (event.key === "Enter") {
+                selectedNoteIndex = (selectedNoteIndex + 1) % notes.length;
+                renderNotes();
+            }
+        });
+
+        renderNotes();
+    </script>
+</body>
+</html>
