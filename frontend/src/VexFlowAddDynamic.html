@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Highlight and Delete Notes</title>
+    <title>Highlight, Add, and Delete Notes</title>
     <script src="https://unpkg.com/vexflow/releases/vexflow-min.js"></script>
     <style>
         .selected-note {
@@ -30,8 +30,9 @@
         const context = renderer.getContext();
 
         // Initial configuration
-        renderer.resize(500, 200); // Set the size of the SVG renderer
-        const width = 400;
+        const staveWidth = 400; // Width of each stave
+        const measureNotesCount = 4; // Number of beats per measure
+        const rowSpacing = 120; // Vertical spacing between rows
 
         // Global array of notes
         let notes = [
@@ -42,9 +43,37 @@
         ];
 
         let selectedNoteIndex = null; // Track the selected note index
-        let tickables = []; // Store tickable objects to map with SVG elements
 
-        // Function to render the entire stave including the clef, time signature, and notes
+        // Function to group notes into measures
+        function groupNotesIntoMeasures(notes, notesPerMeasure) {
+            const measures = [];
+            for (let i = 0; i < notes.length; i += notesPerMeasure) {
+                measures.push(notes.slice(i, i + notesPerMeasure));
+            }
+            return measures;
+        }
+
+        // Function to calculate stave positions for wrapping
+        function calculateStavePosition(measureIndex) {
+            const screenWidth = window.innerWidth; // Total available screen width
+            const measuresPerRow = Math.floor(screenWidth / staveWidth); // Measures that fit per row
+            const rowIndex = Math.floor(measureIndex / measuresPerRow); // Row number
+            const columnIndex = measureIndex % measuresPerRow; // Column number
+
+            return {
+                x: 10 + columnIndex * staveWidth, // Horizontal position
+                y: 40 + rowIndex * rowSpacing, // Vertical position with spacing between rows
+                rowIndex: rowIndex,
+            };
+        }
+
+        // Function to adjust SVG height dynamically
+        function adjustSVGHeight(totalRows) {
+            const newHeight = (totalRows * rowSpacing) + 100; // Calculate height based on rows
+            renderer.resize(window.innerWidth, newHeight); // Resize the renderer
+        }
+
+        // Function to render the entire stave including multiple measures
         function renderNotes() {
             // Clear the context to remove previous notes
             context.clear();
@@ -52,33 +81,51 @@
             // Update the notes display on the page
             divNotesDisplay.innerHTML = "<strong>Notes Array:</strong> " + JSON.stringify(notes, null, 2);
 
-            // Create the stave and add it to the context
-            const stave = new VF.Stave(10, 40, width);
-            stave.addClef("treble").addTimeSignature("4/4");
-            stave.setContext(context).draw();
+            // Group notes into measures
+            const measures = groupNotesIntoMeasures(notes, measureNotesCount);
 
-            // Create a voice and add the notes
-            const voice = new VF.Voice({ num_beats: notes.length, beat_value: 4 });
-            tickables = notes.map((note, index) => {
-                const staveNote = new VF.StaveNote({
-                    clef: "treble",
-                    keys: [note.key],
-                    duration: note.duration,
+            // Calculate the total number of rows needed
+            const measuresPerRow = Math.floor(window.innerWidth / staveWidth);
+            const totalRows = Math.ceil(measures.length / measuresPerRow);
+
+            // Adjust the SVG height based on total rows
+            adjustSVGHeight(totalRows);
+
+            // Render each measure
+            measures.forEach((measureNotes, measureIndex) => {
+                const position = calculateStavePosition(measureIndex);
+
+                // Create the stave
+                const stave = new VF.Stave(position.x, position.y, staveWidth);
+                if (measureIndex === 0) {
+                    stave.addClef("treble").addTimeSignature("4/4");
+                }
+                stave.setContext(context).draw();
+
+                // Create a voice for this measure
+                const voice = new VF.Voice({ num_beats: measureNotes.length, beat_value: 4 });
+                const measureTickables = measureNotes.map((note, index) => {
+                    const staveNote = new VF.StaveNote({
+                        clef: "treble",
+                        keys: [note.key],
+                        duration: note.duration,
+                    });
+
+                    // Highlight the selected note
+                    const globalIndex = measureIndex * measureNotesCount + index;
+                    if (globalIndex === selectedNoteIndex) {
+                        staveNote.setStyle({ fillStyle: "red", strokeStyle: "red" });
+                    }
+
+                    return staveNote;
                 });
 
-                // Highlight the selected note
-                if (index === selectedNoteIndex) {
-                    staveNote.setStyle({ fillStyle: "red", strokeStyle: "red" });
-                }
+                voice.addTickables(measureTickables);
 
-                return staveNote;
+                // Format and draw the voice
+                new VF.Formatter().joinVoices([voice]).format([voice], staveWidth - 50);
+                voice.draw(context, stave);
             });
-
-            voice.addTickables(tickables);
-
-            // Format and draw the voice
-            new VF.Formatter().joinVoices([voice]).format([voice], 350);
-            voice.draw(context, stave);
 
             // Attach click events to the SVG note elements
             attachClickEvents();
@@ -96,30 +143,35 @@
             });
         }
 
+        // Listen for the "A" key press to add a new note
+        window.addEventListener("keydown", (event) => {
+            if (event.key === "a") {
+                // Add a new note to the notes array
+                notes.push({ key: "g/4", duration: "q" });
+                renderNotes(); // Redraw the stave
+            }
+        });
+
         // Listen for the "Delete" key press to delete the selected note
         window.addEventListener("keydown", (event) => {
             if (event.key === "Delete" && selectedNoteIndex !== null) {
                 // Remove the selected note from the notes array
                 notes.splice(selectedNoteIndex, 1);
-                
-                // If the selected note was at the last index, adjust the selectedNoteIndex
-                if (selectedNoteIndex >= notes.length) {
-                    selectedNoteIndex = notes.length - 1; // Adjust index to last valid note
-                }
 
-                // If no notes are left, reset selectedNoteIndex to null
+                // Adjust the selectedNoteIndex
+                if (selectedNoteIndex >= notes.length) {
+                    selectedNoteIndex = notes.length - 1;
+                }
                 if (notes.length === 0) {
                     selectedNoteIndex = null;
                 }
 
-                // Redraw the entire stave after deletion
-                renderNotes();
+                renderNotes(); // Redraw the stave
             }
         });
 
         // Initial rendering of notes
         renderNotes();
-
     </script>
 </body>
 </html>
