@@ -1,5 +1,5 @@
 // A more advanced Tone.js test
-
+// Make sure Tone is installed from npm (?)
 import * as Tone from 'tone';
 
 // Create a synth and connect it to the main output
@@ -16,12 +16,16 @@ function playSequence(sequence) {
     }, partData);
 
     // Configure the part
-    part.loop = 1;       // Number of loops (optional)
-    part.loopEnd = "1m"; // Duration of the loop (optional)
+    // part.loop = 1;       // Number of loops (optional)
+    // part.loopEnd = "1m"; // Duration of the loop (optional)
 
     // Start the transport and the part
     const transport = Tone.getTransport();
-    transport.bpm.value = 120; // Set the tempo
+    // const context = Tone.getContext();
+    // if (context.state !== "running") {
+    //     context.resume();
+    // }
+    transport.bpm.value = tempoSlider.value; // Set the tempo
     part.start(0);
     transport.start();
 }
@@ -50,9 +54,19 @@ const pauseButton = document.createElement('button');
 pauseButton.textContent = 'Pause Music';
 pauseButton.onclick = () => {
     Tone.getTransport().pause();
+    console.log('State is:', Tone.getContext().state);
 }
 
 document.body.appendChild(pauseButton);
+
+const resumeButton = document.createElement('button');
+resumeButton.textContent = 'Resume Music';
+resumeButton.onclick = () => {
+    Tone.getTransport().start();
+    console.log('State is:', Tone.getContext().state);
+}
+
+document.body.appendChild(resumeButton);
 
 // Tempo slider
 const tempoSlider = document.createElement('input');
