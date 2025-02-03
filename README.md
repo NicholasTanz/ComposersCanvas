@@ -1,12 +1,11 @@
 # ComposersCanvas - A web application that allows users to create sheet music and play it back.
 ## Frontend
 
-The frontend of ComposersCanvas is built using [React](https://reactjs.org/).
+The frontend of ComposersCanvas utilizes Vue.js.
 
 ## Backend
 
-The backend of ComposersCanvas is powered by [Flask](https://flask.palletsprojects.com/).
- by [Flask](https://flask.palletsprojects.com/).
+The backend of ComposersCanvas utilizes Flask.
 
 ## Environment Setup
 
