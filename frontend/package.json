@@ -8,8 +8,6 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:unit": "vitest",
-    "test:e2e": "start-server-and-test preview http://localhost:4173 'cypress run --e2e'",
-    "test:e2e:dev": "start-server-and-test 'vite dev --port 4173' http://localhost:4173 'cypress open --e2e'",
     "lint": "eslint . --fix",
     "format": "prettier --write src/"
   },
@@ -25,9 +23,7 @@
     "@vitest/eslint-plugin": "1.1.25",
     "@vue/eslint-config-prettier": "^10.1.0",
     "@vue/test-utils": "^2.4.6",
-    "cypress": "^14.0.0",
     "eslint": "^9.18.0",
-    "eslint-plugin-cypress": "^4.1.0",
     "eslint-plugin-vue": "^9.32.0",
     "jsdom": "^26.0.0",
     "prettier": "^3.4.2",
