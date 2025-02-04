@@ -21,7 +21,6 @@
 <body>
     <div>
         <button class="note-button">Whole Note</button>
-        <button class="note-button">Dotted Half Note</button>
         <button class="note-button">Half Note</button>
         <button class="note-button">Quarter Note</button>
         <button class="note-button">Eigth Note</button>
@@ -46,7 +45,8 @@
         ];
 
         let selectedNoteIndex = null; // Track the selected note index
-        let dur = "q"
+        let dur = "q";
+        
         // Define accidentals for sharp and flat handling
         const halfSteps = {
             c: ["c#", "db"],
@@ -90,6 +90,8 @@
 
             adjustSVGHeight(totalRows);
 
+            let globalIndex = 0; // Global index across all measures
+
             measures.forEach((measureNotes, measureIndex) => {
                 const position = calculateStavePosition(measureIndex);
 
@@ -118,10 +120,12 @@
                         staveNote.addAccidental(0, new VF.Accidental("#"));
                     }
 
-                    const globalIndex = measureIndex * 4 + index;
+                    // Highlight the selected note by comparing global index
                     if (globalIndex === selectedNoteIndex) {
                         staveNote.setStyle({ fillStyle: "red", strokeStyle: "red" });
                     }
+
+                    globalIndex++; // Increment global index for each note
 
                     return staveNote;
                 });
@@ -187,8 +191,8 @@
             const noteGroups = divStave.querySelectorAll("svg g.vf-stavenote");
             noteGroups.forEach((group, index) => {
                 group.addEventListener("click", () => {
-                    selectedNoteIndex = index;
-                    renderNotes();
+                    selectedNoteIndex = index; // Update the selected note index based on the global order
+                    renderNotes(); // Re-render notes to apply the highlight
                 });
             });
         }
@@ -202,11 +206,11 @@
             let newNote;
             if (direction === "up") {
                 newNote = halfSteps[note] ? halfSteps[note][0] : note;
-                if (newNote === "c") notes[index].key = `${newNote}/${+octave + 1}`;
+                if (newNote === "c") notes[index].key = `${newNote}/${+octave + 1}`; // Handle octave change
                 else notes[index].key = `${newNote}/${octave}`;
             } else if (direction === "down") {
                 newNote = reverseHalfSteps[note] || note;
-                if (newNote === "b") notes[index].key = `${newNote}/${+octave - 1}`;
+                if (newNote === "b") notes[index].key = `${newNote}/${+octave - 1}`; // Handle octave change
                 else notes[index].key = `${newNote}/${octave}`;
             }
 
@@ -246,7 +250,7 @@
 
         document.querySelectorAll(".note-button").forEach((button, index) => {
             button.addEventListener("click", () => {
-                const durations = ["w", "hd", "h", "q", "8", "16"]; // Corresponding durations
+                const durations = ["w", "h", "q", "8", "16"]; // Corresponding durations
                 dur = durations[index]; // Update the duration based on button clicked
                 console.log("Selected duration:", dur);
             });
