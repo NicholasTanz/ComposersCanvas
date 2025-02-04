@@ -24,6 +24,7 @@
         <button class="note-button">Dotted Half Note</button>
         <button class="note-button">Half Note</button>
         <button class="note-button">Quarter Note</button>
+        <button class="note-button">Eigth Note</button>
         <button class="note-button">Sixteenth Note</button>
     </div>
     <div id="my-stave"></div>
@@ -84,7 +85,7 @@
             context.clear();
             divNotesDisplay.innerHTML = "<strong>Notes Array:</strong> " + JSON.stringify(notes, null, 2);
 
-            const measures = groupNotesIntoMeasures(notes, 4); // Group notes into measures of 4 beats
+            const measures = groupNotesIntoMeasures(notes); // Remove fixed note count
             const totalRows = Math.ceil(measures.length / Math.floor(window.innerWidth / staveWidth));
 
             adjustSVGHeight(totalRows);
@@ -98,7 +99,10 @@
                 }
                 stave.setContext(context).draw();
 
-                const voice = new VF.Voice({ num_beats: measureNotes.length, beat_value: 4 });
+                // Fixed time signature: 4 beats per measure
+                const voice = new VF.Voice({ num_beats: 4, beat_value: 4 });
+                voice.setStrict(false); // Allow flexible durations without strict validation
+
                 const measureTickables = measureNotes.map((note, index) => {
                     const staveNote = new VF.StaveNote({
                         clef: "treble",
@@ -114,7 +118,6 @@
                         staveNote.addAccidental(0, new VF.Accidental("#"));
                     }
 
-                    // Highlight the selected note
                     const globalIndex = measureIndex * 4 + index;
                     if (globalIndex === selectedNoteIndex) {
                         staveNote.setStyle({ fillStyle: "red", strokeStyle: "red" });
@@ -133,11 +136,35 @@
         }
 
         // Group notes into measures
-        function groupNotesIntoMeasures(notes, notesPerMeasure) {
+        function groupNotesIntoMeasures(notes) {
             const measures = [];
-            for (let i = 0; i < notes.length; i += notesPerMeasure) {
-                measures.push(notes.slice(i, i + notesPerMeasure));
+            let currentMeasure = [];
+            let currentBeats = 0;
+
+            const durationValues = {
+                "w": 4,
+                "hd": 3,
+                "h": 2,
+                "q": 1,
+                "8": 0.5,
+                "16": 0.25
+            };
+
+            notes.forEach(note => {
+                const beats = durationValues[note.duration] || 1; // Default to 1 beat if unknown
+                if (currentBeats + beats > 4) {
+                    measures.push(currentMeasure);
+                    currentMeasure = [];
+                    currentBeats = 0;
+                }
+                currentMeasure.push(note);
+                currentBeats += beats;
+            });
+
+            if (currentMeasure.length > 0) {
+                measures.push(currentMeasure);
             }
+
             return measures;
         }
 
@@ -219,7 +246,7 @@
 
         document.querySelectorAll(".note-button").forEach((button, index) => {
             button.addEventListener("click", () => {
-                const durations = ["w", "dh", "h", "q", "s"]; // Corresponding durations
+                const durations = ["w", "hd", "h", "q", "8", "16"]; // Corresponding durations
                 dur = durations[index]; // Update the duration based on button clicked
                 console.log("Selected duration:", dur);
             });
