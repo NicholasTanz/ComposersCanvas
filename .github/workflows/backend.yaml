@@ -1,4 +1,4 @@
-name: Backend Tests and Linting.
+name: Backend Workflow. Lints, tests, and builds the backend service.  
 
 on:
   push:
@@ -79,3 +79,24 @@ jobs:
       
       - name: Stop services
         run: docker-compose -f docker-compose.yaml -f docker-compose.override.yaml down
+      
+  build:
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Build the Docker image
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/backend:${{ github.run_number }} ./backend
+
+      # Log in to Docker Hub
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+
+      # Push the Docker image
+      - name: Push Docker image
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/backend:${{ github.run_number }}
