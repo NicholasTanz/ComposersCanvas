@@ -1,16 +1,32 @@
 <script setup>
 import { ref } from 'vue';
+import axios from 'axios';
 
 const username = ref('');
 const password = ref('');
+const email = ref('');
+const response = ref(null);
 
-const handleSubmit = () => {
-    console.log('Username:', username.value);
-    console.log('Password:', password.value);
+const handleSubmit = async (event) => {
 
-    return { username, password, handleSubmit };
+  try {
+    const res = await axios.post("http://localhost:5000/register", {
+      username: username.value,
+      password: password.value,
+      email: email.value
+    }, {
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      }
+    });
+
+    response.value = res.data;
+  } catch (error) {
+    console.error("Error:", error.response?.data || error.message);
+    response.value = "Error: " + (error.response?.data?.error || error.message);
+  }
 };
-
 </script>
 
 <template>
@@ -24,6 +40,10 @@ const handleSubmit = () => {
       <div>
         <label for="password">Password:</label>
         <input type="password" id="password" v-model="password" required />
+      </div>
+      <div>
+        <label for="email">Email:</label>
+        <input type="email" id="email" v-model="email" required />
       </div>
       <button type="submit">Submit</button>
     </form>

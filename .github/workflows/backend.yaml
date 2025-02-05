@@ -1,4 +1,4 @@
-name: Backend Workflow. Lints, tests, and builds the backend service.  
+name: Backend Workflow.
 
 on:
   push:
@@ -63,7 +63,7 @@ jobs:
           echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> $GITHUB_ENV
 
       - name: Build and start services
-        run: docker-compose -f docker-compose.yaml -f docker-compose.override.yaml up -d --build backend db
+        run: docker compose up backend db
 
       - name: Wait for services to be ready
         run: |
@@ -78,7 +78,7 @@ jobs:
           pytest backend/test/
       
       - name: Stop services
-        run: docker-compose -f docker-compose.yaml -f docker-compose.override.yaml down
+        run: docker compose down
       
   build:
     needs: test

@@ -1,4 +1,4 @@
-name: Frontend Workflow. Builds and pushes the frontend service to Docker Hub.
+name: Frontend Workflow.
 
 on:
   workflow_dispatch: # manual trigger.
