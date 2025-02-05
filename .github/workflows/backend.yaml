@@ -63,7 +63,7 @@ jobs:
           echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> $GITHUB_ENV
 
       - name: Build and start services
-        run: docker compose up backend db
+        run: docker compose up -f docker-compose.yaml -d --build backend db
 
       - name: Wait for services to be ready
         run: |
