@@ -33,6 +33,13 @@
         <input type="text" id="key-signature" placeholder="C" />
         <button id="update-key">Update Key</button>
     </div>
+    <div>
+        <label for="numerator">Enter Time Signature Numerator:</label>
+        <input type="number" id="numerator" placeholder="4" />
+        <label for="denominator">Enter Time Signature Denominator:</label>
+        <input type="number" id="denominator" placeholder="4" />
+        <button id="update-time">Update Time Signature</button>
+    </div>
     <div id="my-stave"></div>
     <div id="notes-display"></div> <!-- Area to display the notes array -->
 
@@ -55,7 +62,9 @@
         let dur = "q";
         let isRestMode = false; // Track if we're in rest mode
         let currentKeySignature = 'C'
-        
+        let timeSignatureNumerator = 4; 
+        let timeSignatureDenominator = 4; 
+
         // Define accidentals for sharp and flat handling
         const halfSteps = {
             c: ["c#", "db"],
@@ -106,14 +115,14 @@
 
                 const stave = new VF.Stave(position.x, position.y, staveWidth);
                 if (measureIndex === 0) {
-                    stave.addClef("treble").addTimeSignature("4/4").addKeySignature(currentKeySignature);
+                    stave.addClef("treble").addTimeSignature(timeSignatureNumerator + "/" + timeSignatureDenominator).addKeySignature(currentKeySignature);
                     //stave.Accidental.applyAccidentals([voice], `C`);
 
                 }
                 stave.setContext(context).draw();
 
                 // Fixed time signature: 4 beats per measure
-                const voice = new VF.Voice({ num_beats: 4, beat_value: 4 });
+                const voice = new VF.Voice({ num_beats: timeSignatureNumerator, beat_value: timeSignatureDenominator });
                 voice.setStrict(false); // Allow flexible durations without strict validation
 
                 const measureTickables = measureNotes.map((note, index) => {
@@ -152,23 +161,23 @@
             let currentBeats = 0;
 
             const durationValues = {
-                "w": 4,
-                "hd": 3,
-                "h": 2,
-                "q": 1,
-                "8": 0.5,
-                "16": 0.25,
-                "wr": 4,
-                "hdr": 3,
-                "hr": 2,
-                "qr": 1,
-                "8r": 0.5,
-                "16r": 0.25
+                "w": timeSignatureDenominator,
+                "hd": timeSignatureDenominator * 0.75,
+                "h": timeSignatureDenominator * 0.5,
+                "q": timeSignatureDenominator * 0.25,
+                "8": timeSignatureDenominator * (1/8),
+                "16": timeSignatureDenominator * (1/16),
+                "wr": timeSignatureNumerator,
+                "hdr": timeSignatureDenominator * 0.75,
+                "hr": timeSignatureDenominator * 0.5,
+                "qr": timeSignatureDenominator * 0.25,
+                "8r": timeSignatureDenominator * (1/8),
+                "16r": timeSignatureDenominator * (1/16)
             };
 
             notes.forEach(note => {
                 const beats = durationValues[note.duration] || 1; // Default to 1 beat if unknown
-                if (currentBeats + beats > 4) {
+                if (currentBeats + beats > timeSignatureNumerator) {
                     measures.push(currentMeasure);
                     currentMeasure = [];
                     currentBeats = 0;
@@ -188,25 +197,25 @@
             const allRests = true;
 
             const durationValues = {
-                "w": 4,
-                "hd": 3,
-                "h": 2,
-                "q": 1,
-                "8": 0.5,
-                "16": 0.25,
-                "wr": 4,
-                "hdr": 3,
-                "hr": 2,
-                "qr": 1,
-                "8r": 0.5,
-                "16r": 0.25
+                "w": timeSignatureDenominator,
+                "hd": timeSignatureDenominator * 0.75,
+                "h": timeSignatureDenominator * 0.5,
+                "q": timeSignatureDenominator * 0.25,
+                "8": timeSignatureDenominator * (1/8),
+                "16": timeSignatureDenominator * (1/16),
+                "wr": timeSignatureNumerator,
+                "hdr": timeSignatureDenominator * 0.75,
+                "hr": timeSignatureDenominator * 0.5,
+                "qr": timeSignatureDenominator * 0.25,
+                "8r": timeSignatureDenominator * (1/8),
+                "16r": timeSignatureDenominator * (1/16)
             };
 
             notes.forEach(note => {
                 const beats = durationValues[note.duration] || 1; // Default to 1 beat if unknown
-                if (currentBeats + beats > 4) {
-                    while (currentBeats < 4) {
-                        const restDuration = getRestDuration(4 - currentBeats);
+                if (currentBeats + beats > timeSignatureNumerator) {
+                    while (currentBeats < timeSignatureNumerator) {
+                        const restDuration = getRestDuration(timeSignatureNumerator - currentBeats);
                         currentMeasure.push({ key: "b/4", duration: restDuration + "r" });
                         currentBeats += durationValues[restDuration];
                     }
@@ -228,8 +237,8 @@
             });
 
             // Final check for the last measure
-            while (currentBeats < 4) {
-                const restDuration = getRestDuration(4 - currentBeats);
+            while (currentBeats < timeSignatureNumerator) {
+                const restDuration = getRestDuration(timeSignatureNumerator - currentBeats);
                 currentMeasure.push({ key: "b/4", duration: restDuration + "r" });
                 currentBeats += durationValues[restDuration];
             }
@@ -249,17 +258,17 @@
 
         // Helper function to check if a measure contains at least one whole rest
         function containsWholeRest(measure) {
-            return measure.some(note => note.duration === "w" || note.duration === "wr");
+            return measure.some(note => note.duration === "wr");
         }
 
 
         // Helper function to determine the rest duration based on the remaining beats
         function getRestDuration(remainingBeats) {
-            if (remainingBeats === 4) return "w"; // Whole rest
-            if (remainingBeats >= 3) return "hd"; // Dotted half rest
-            if (remainingBeats >= 2) return "h"; // Half rest
-            if (remainingBeats >= 1) return "q"; // Quarter rest
-            if (remainingBeats >= 0.5) return "8"; // Eighth rest
+            if (remainingBeats === timeSignatureNumerator) return "w"; // Whole rest
+            if (remainingBeats >= timeSignatureDenominator*(3/4)) return "hd"; // Dotted half rest
+            if (remainingBeats >= timeSignatureDenominator*(1/2)) return "h"; // Half rest
+            if (remainingBeats >= timeSignatureDenominator*(1/4)) return "q"; // Quarter rest
+            if (remainingBeats >= timeSignatureDenominator*(1/8)) return "8"; // Eighth rest
             return "16"; // Default to sixteenth rest
         }
 
@@ -375,6 +384,15 @@
             }
         });
 
+        document.getElementById("update-time").addEventListener("click", () => {
+            const numerator = document.getElementById("numerator").value.trim();
+            const denominator = document.getElementById("denominator").value.trim();
+            if (numerator && denominator) {
+                timeSignatureNumerator = parseInt(numerator); // Update numerator
+                timeSignatureDenominator = parseInt(denominator); // Update denominator
+                renderNotes(); // Re-render with the new time signature
+            }
+        });
         renderNotes();
     </script>
 </body>
