@@ -3,7 +3,6 @@ import { ref } from 'vue';
 import axios from 'axios';
 import Navbar from '../components/Navbar.vue';
 
-
 const username = ref('');
 const password = ref('');
 const email = ref('');
@@ -12,7 +11,7 @@ const response = ref(null);
 const handleSubmit = async (event) => {
 
   try {
-    const res = await axios.post("http://localhost:5000/register", {
+    const res = await axios.post("http://localhost:5000/login", {
       username: username.value,
       password: password.value,
       email: email.value
@@ -35,7 +34,7 @@ const handleSubmit = async (event) => {
   <div :class="{ dark: darkMode }">
     <div class="container">
       <Navbar />
-      <h2 class="text-3xl font-bold text-yellow-300">Create Account</h2>
+      <h2 class="text-3xl font-bold text-yellow-300">Login to Account</h2>
       <form @submit="handleSubmit" class="space-y-6 mt-6">
         <div>
           <label for="username" class="text-lg text-gray-700 dark:text-gray-300">Username:</label>
