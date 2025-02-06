@@ -153,7 +153,13 @@
                 "h": 2,
                 "q": 1,
                 "8": 0.5,
-                "16": 0.25
+                "16": 0.25,
+                "wr": 4,
+                "hdr": 3,
+                "hr": 2,
+                "qr": 1,
+                "8r": 0.5,
+                "16r": 0.25
             };
 
             notes.forEach(note => {
@@ -202,6 +208,7 @@
         // Move note by a half step (up or down)
         function moveNoteHalfStep(index, direction) {
             if (index === null || index < 0 || index >= notes.length) return;
+            if (notes[index].duration.includes("r")) return;
 
             const [note, octave] = notes[index].key.split("/");
 
@@ -259,8 +266,11 @@
         });
 
         document.getElementById("rest-button").addEventListener("click", () => {
-            isRestMode = true; // Enable rest mode
-            console.log("Rest mode activated");
+            if (isRestMode == false) {
+                isRestMode = true; // Enable rest mode
+            } else {
+                isRestMode = false;
+            }
         });
 
 
