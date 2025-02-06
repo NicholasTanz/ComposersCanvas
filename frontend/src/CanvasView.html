@@ -28,6 +28,11 @@
         <button class="note-button">Sixteenth Note</button>
         <button id="rest-button">Rest</button>
     </div>
+    <div>
+        <label for="key-signature">Enter Key Signature:</label>
+        <input type="text" id="key-signature" placeholder="C" />
+        <button id="update-key">Update Key</button>
+    </div>
     <div id="my-stave"></div>
     <div id="notes-display"></div> <!-- Area to display the notes array -->
 
@@ -100,7 +105,7 @@
 
                 const stave = new VF.Stave(position.x, position.y, staveWidth);
                 if (measureIndex === 0) {
-                    stave.addClef("treble").addTimeSignature("4/4");
+                    stave.addClef("treble").addTimeSignature("4/4").addKeySignature(currentKeySignature);
                     //stave.Accidental.applyAccidentals([voice], `C`);
 
                 }
@@ -131,7 +136,7 @@
                 });
 
                 voice.addTickables(measureTickables);
-                VF.Accidental.applyAccidentals([voice], 'C')
+                VF.Accidental.applyAccidentals([voice], currentKeySignature)
                 new VF.Formatter().joinVoices([voice]).format([voice], staveWidth - 50);
                 voice.draw(context, stave);
             });
@@ -361,6 +366,13 @@
             }
         });
 
+        document.getElementById("update-key").addEventListener("click", () => {
+            const inputKey = document.getElementById("key-signature").value.trim();
+            if (inputKey) {
+                currentKeySignature = inputKey; // Update the key signature
+                renderNotes(); // Re-render with the new key signature
+            }
+        });
 
         renderNotes();
     </script>
