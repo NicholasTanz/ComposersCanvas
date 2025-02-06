@@ -37,7 +37,6 @@ jobs:
   test:
     needs: lint
     runs-on: ubuntu-latest
-
     steps:
       # Checkout the repository
       - name: Checkout code
@@ -66,11 +65,7 @@ jobs:
         run: docker compose up -d --build backend db
 
       - name: Wait for services to be ready
-        run: |
-          until curl -s http://localhost:5000; do
-            echo "Waiting for Flask app to be ready..."
-            sleep 5
-          done
+        run: sleep 5
 
       - name: Run tests
         run: |
