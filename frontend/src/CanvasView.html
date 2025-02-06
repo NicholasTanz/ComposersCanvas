@@ -213,27 +213,30 @@
 
             notes.forEach(note => {
                 const beats = durationValues[note.duration] || 1; // Default to 1 beat if unknown
-                if (currentBeats + beats > timeSignatureNumerator) {
-                    while (currentBeats < timeSignatureNumerator) {
-                        const restDuration = getRestDuration(timeSignatureNumerator - currentBeats);
-                        currentMeasure.push({ key: "b/4", duration: restDuration + "r" });
-                        currentBeats += durationValues[restDuration];
-                    }
-                    // Now, check if the current measure is all rests (excluding whole rests)
-                    if (isMeasureAllRests(currentMeasure) && !containsWholeRest(currentMeasure)) {
-                        // Do not push this measure if it only contains rests (except for whole rest)
-                        console.log("Skipping measure with only rests (except whole rest).");
-                    } else {
-                        resultNotes.push(...currentMeasure); // Otherwise, push it to the result
+                if(durationValues[note.duration] <= timeSignatureNumerator) {
+                    if (currentBeats + beats > timeSignatureNumerator) {
+                        while (currentBeats < timeSignatureNumerator) {
+                            const restDuration = getRestDuration(timeSignatureNumerator - currentBeats);
+                            currentMeasure.push({ key: "b/4", duration: restDuration + "r" });
+                            currentBeats += durationValues[restDuration];
+                        }
+                        // Now, check if the current measure is all rests (excluding whole rests)
+                        if (isMeasureAllRests(currentMeasure) && !containsWholeRest(currentMeasure)) {
+                            // Do not push this measure if it only contains rests (except for whole rest)
+                            console.log("Skipping measure with only rests (except whole rest).");
+                        } else {
+                            resultNotes.push(...currentMeasure); // Otherwise, push it to the result
+                        }
+
+                        // Reset the measure and beats tracker for the next measure
+                        currentMeasure = [];
+                        currentBeats = 0;
                     }
 
-                    // Reset the measure and beats tracker for the next measure
-                    currentMeasure = [];
-                    currentBeats = 0;
+                    currentMeasure.push(note);
+                    currentBeats += beats;
                 }
-
-                currentMeasure.push(note);
-                currentBeats += beats;
+                
             });
 
             // Final check for the last measure
