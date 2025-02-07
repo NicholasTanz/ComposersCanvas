@@ -3,13 +3,19 @@ import { ref } from 'vue';
 import axios from 'axios';
 import Navbar from '../components/Navbar.vue';
 
+import { useAuthStore } from '@/stores/auth'; // Import the Pinia store
+const authStore = useAuthStore(); // Initialize store
+
 const username = ref('');
 const password = ref('');
 const email = ref('');
 const response = ref(null);
+const loginStatus = ref('');
+const submitted = ref(false);
 
 const handleSubmit = async (event) => {
-
+  event.preventDefault();
+  submitted.value = true;
   try {
     const res = await axios.post("http://localhost:5000/login", {
       username: username.value,
@@ -22,10 +28,13 @@ const handleSubmit = async (event) => {
       }
     });
 
+    authStore.setToken(res.data.token); // Set the token in the store
     response.value = res.data;
+    loginStatus.value = "Login Successful!";
   } catch (error) {
     console.error("Error:", error.response?.data || error.message);
     response.value = "Error: " + (error.response?.data?.error || error.message);
+    loginStatus.value = "Login Failed!";
   }
 };
 </script>
@@ -50,6 +59,12 @@ const handleSubmit = async (event) => {
         </div>
         <button type="submit" class="btn-primary">Submit</button>
       </form>
+      <div v-if="submitted" class="status-container">
+      <h3 class="status-title">Login Status:</h3>
+      <p :class="{'text-green-500': loginStatus === 'Login successful!', 'text-red-500': loginStatus.includes('failed')}" class="status-message">
+        {{ loginStatus }}
+      </p>
+    </div>
     </div>
   </div>
 </template>
@@ -109,6 +124,26 @@ h2 {
 .btn-primary:hover {
   background-color: #ffdb4d;
   transform: scale(1.05);
+}
+
+.status-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+  color: #ffcc00;
+}
+
+.status-message {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.text-green-500 {
+  color: #28a745;
+}
+
+.text-red-500 {
+  color: #dc3545;
 }
 
 </style>

@@ -65,6 +65,7 @@ jobs:
           echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> $GITHUB_ENV
           echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> $GITHUB_ENV
           echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> $GITHUB_ENV
+          echo "SECRET_KEY=${{ secrets.LOCAL_DEV_SECRET_KEY }}" >> $GITHUB_ENV
 
       - name: Build and start services
         run: docker compose up -d --build backend db

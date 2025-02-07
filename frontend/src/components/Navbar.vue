@@ -1,8 +1,9 @@
 <template>
     <nav class="navbar">
       <div class="nav-links">
-        <RouterLink to="/login" class="nav-link">Login</RouterLink>
+        <RouterLink to="/" class="nav-link">Home</RouterLink>
         <RouterLink to="/createAccount" class="nav-link">Create an Account</RouterLink>
+        <RouterLink to="/login" class="nav-link">Login</RouterLink>
         <RouterLink to="/create" class="nav-link">Create Composition</RouterLink>
         <RouterLink to="/saved" class="nav-link">View Saved Compositions</RouterLink>
       </div>
