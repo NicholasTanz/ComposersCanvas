@@ -1,26 +1,33 @@
-# ComposersCanvas - A web application that allows users to create sheet music and play it back.
+# Composers Canvas - A web application that allows users to create sheet music and play it back.
 ## Frontend
 
-The frontend of ComposersCanvas utilizes Vue.js.
+We utilize Vue.js for the frontend of Composers Canvas. At a high level, the frontend handles creating compositions, playback of compositions, and rendering sheet music.
+To see more information about the frontend setup, view the frontend [README](frontend/README.md).
 
 ## Backend
 
-The backend of ComposersCanvas utilizes Flask.
+We utilize Flask for the backend of Composers Canvas. At a high level, the backend handles user authentication, saving compositions, and retrieving compositions.
+To see more information about the backend setup, view the backend [README](backend/README.md).
 
 ## Environment Setup
 
-To set up the environment, create a `.env` file in the root directory of the project and add the following variables:
+We .gitignore the .env file, so you will need to create your own .env file in the root directory of the project. The .env file should contain the following variables and values for local development:
 
-```
-DB_USER=your_database_user
-DB_PASSWORD=your_database_password
-DB_NAME=database_name
-DB_URI=your_database_uri
+```sh
+
+POSTGRES_USER=username
+POSTGRES_PASSWORD=password
+POSTGRES_DB=music_composer
+DATABASE_URL=postgresql://username:password@db:5432/music_composer
+FLASK_RUN_HOST=0.0.0.0
+FLASK_RUN_PORT=5000
+SECRET_KEY = 9c77b62fd66e33db11d4e6e088d77e0d014151091fd40d85392a412a47bc4003
+
 ```
 
 ## Docker Commands
 
-To start the application using Docker, run:
+To start all three services (frontend, backend, and database), run the following command:
 
 ```sh
 docker compose up
@@ -38,23 +45,10 @@ To restart a specific container, use:
 docker compose restart <container_name>
 ```
 
-## Backend Repository Setup
-
-To set up the backend, navigate to the backend directory and follow the instructions provided in the `README.md` file located there.
-
-## Running Backend Tests
-
-To run the backend tests, navigate to the backend directory and execute the following command while the Docker containers are running:
-
-```sh
-pytest
-```
-
-
 ## Accessing the PostgreSQL Database
 
 To access the PostgreSQL database via the terminal, use the following command:
 
 ```sh
-docker exec -it composerscanvas-db-1 psql -U <username> -d <database_name>
+docker exec -it composerscanvas-db-1 psql -U username -d music_composer
 ```
