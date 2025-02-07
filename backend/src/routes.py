@@ -112,5 +112,5 @@ def verify_token(token):
     try:
         jwt.decode(token, str(os.getenv("SECRET_KEY")), algorithms=["HS256"])
         return jsonify({"message": "Valid token"}), 200
-    except:
+    except: # noqa: E722 
         return jsonify({"message": "Invalid token"}), 401
