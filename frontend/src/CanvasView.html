@@ -16,16 +16,50 @@
             font-size: 14px;
             color: #333;
         }
+        #note-selection {
+            position: relative;
+            display: inline-block;
+        }
+
+        #note-options {
+            display: none;
+            position: absolute;
+            top: 50px;
+            left: 0;
+            background: white;
+            border: 1px solid black;
+            padding: 5px;
+        }
+
+        #note-selection:hover #note-options,
+        #note-options:focus-within {
+            display: flex;
+            flex-direction: row;
+            gap: 5px;
+        }
+
+        .note-option img {
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <div>
-        <button class="note-button">Whole Note</button>
-        <button class="note-button">Dotted Half Note</button>
-        <button class="note-button">Half Note</button>
-        <button class="note-button">Quarter Note</button>
-        <button class="note-button">Eigth Note</button>
-        <button class="note-button">Sixteenth Note</button>
+        <div id="note-selection">
+            <button id="note-button">
+                <img src="assets/quarter.png" alt="Quarter Note" id="note-icon" style="width: 40px; height: 40px;">
+            </button>
+            <div id="note-options" class="hidden">
+                <button class="note-option" data-value="w"><img src="assets/whole.svg" alt="Whole Note"></button>
+                <button class="note-option" data-value="hd"><img src="assets/dotted.svg" alt="Dotted Half Note"></button>
+                <button class="note-option" data-value="h"><img src="assets/half.png" alt="Half Note"></button>
+                <button class="note-option" data-value="q"><img src="assets/quarter.png" alt="Quarter Note"></button>
+                <button class="note-option" data-value="8"><img src="assets/eighth.png" alt="Eighth Note"></button>
+                <button class="note-option" data-value="16"><img src="assets/sixteenth.png" alt="Sixteenth Note"></button>
+            </div>
+        </div>
         <button id="rest-button">Rest</button>
     </div>
     <div>
@@ -50,8 +84,7 @@
         const renderer = new VF.Renderer(divStave, VF.Renderer.Backends.SVG);
         const context = renderer.getContext();
 
-        const staveWidth = 400;
-        const rowSpacing = 120;
+        
 
         // Initial notes array
         let notes = [
@@ -64,6 +97,8 @@
         let currentKeySignature = 'C'
         let timeSignatureNumerator = 4; 
         let timeSignatureDenominator = 4; 
+        let staveWidth = 100*timeSignatureNumerator;
+        let rowSpacing = 120;
 
         // Define accidentals for sharp and flat handling
         const halfSteps = {
@@ -100,6 +135,7 @@
 
         // Function to render the entire stave including multiple measures
         function renderNotes() {
+            staveWidth = 100*timeSignatureNumerator;
             context.clear();
             divNotesDisplay.innerHTML = "<strong>Notes Array:</strong> " + JSON.stringify(notes, null, 2);
             notes = makeProperMeasure(notes);
@@ -363,14 +399,36 @@
             }
         });
 
-        document.querySelectorAll(".note-button").forEach((button, index) => {
-            button.addEventListener("click", () => {
-                const durations = ["w", "hd", "h", "q", "8", "16"]; // Corresponding durations
-                dur = durations[index]; // Update the duration based on button clicked
-                console.log("Selected duration:", dur);
+        document.addEventListener("DOMContentLoaded", () => {
+            const noteButton = document.getElementById("note-button");
+            const noteIcon = document.getElementById("note-icon");
+            const noteOptions = document.getElementById("note-options");
+            const noteButtons = document.querySelectorAll(".note-option");
+
+            noteButtons.forEach(button => {
+                button.addEventListener("click", (event) => {
+                    const selectedNote = event.currentTarget.getAttribute("data-value");
+                    const selectedImage = event.currentTarget.querySelector("img").src;
+                    dur = selectedNote; // Update the duration variable
+                    noteIcon.src = selectedImage; // Change button icon
+
+                    // Hide dropdown after selection
+                    noteOptions.style.display = "none";
+                });
+            });
+
+            // Ensure clicking the button shows the dropdown
+            noteButton.addEventListener("click", () => {
+                noteOptions.style.display = noteOptions.style.display === "flex" ? "none" : "flex";
+            });
+
+            // Close dropdown when clicking anywhere outside
+            document.addEventListener("click", (event) => {
+                if (!noteSelection.contains(event.target)) {
+                    noteOptions.style.display = "none";
+                }
             });
         });
-
         document.getElementById("rest-button").addEventListener("click", () => {
             if (isRestMode == false) {
                 isRestMode = true; // Enable rest mode
@@ -390,10 +448,28 @@
         document.getElementById("update-time").addEventListener("click", () => {
             const numerator = document.getElementById("numerator").value.trim();
             const denominator = document.getElementById("denominator").value.trim();
+
+            // Check if numerator and denominator are provided
             if (numerator && denominator) {
-                timeSignatureNumerator = parseInt(numerator); // Update numerator
-                timeSignatureDenominator = parseInt(denominator); // Update denominator
-                renderNotes(); // Re-render with the new time signature
+                // Convert input to integers
+                const num = parseInt(numerator);
+                const denom = parseInt(denominator);
+
+                // Calculate the width required for the time signature based on the numerator
+                const requiredWidth = 100 * num; // 100px per unit for each beat in the numerator
+
+                // Get the screen width
+                const screenWidth = window.innerWidth;
+
+                // If the time signature width exceeds the screen width, show a popup and don't update the time signature
+                if (requiredWidth > screenWidth) {
+                    alert("Sorry, your screen is too small for this time signature.");
+                } else {
+                    // Otherwise, update the time signature
+                    timeSignatureNumerator = num;
+                    timeSignatureDenominator = denom;
+                    renderNotes(); // Re-render with the new time signature
+                }
             }
         });
         renderNotes();
