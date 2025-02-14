@@ -1,0 +1,20 @@
+# Stage 1: Build Stage
+FROM python:3.9-slim
+
+# Set the working directory
+WORKDIR /app
+
+# Create a backend directory (this is needed so that the imports work correctly)
+RUN mkdir /backend
+
+# Copy all project files into the container
+COPY . /app/backend/
+
+# Install all dependencies including Gunicorn (via requirements.txt)
+RUN pip install --no-cache-dir -r backend/requirements.txt
+
+# Expose the app's port (adjust if needed)
+EXPOSE 5000
+
+# Command to run the Flask app using Gunicorn (production mode)
+CMD ["gunicorn", "-w", "4", "-b", "0.0.0.0:5000", "backend.src.run:app"]
