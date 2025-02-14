@@ -38,5 +38,6 @@
 ## Side Notes
 
 - **Number of Docker Images:**  
-  We have a total of 4 Docker images—2 for the frontend and 2 for the backend. The reason for this is that we maintain separate images for local development and production environments for both services.  
+  - We have a total of 4 Docker images—2 for the frontend and 2 for the backend. The reason for this is that we maintain separate images for local development and production environments for both services.  
   In the future, we plan to unify these images to reduce the number of images we need to manage, simplifying the deployment process.
+  - Whenever you need to utilize the database, make sure to hit 'START' on the Cloud SQL instance to allow the backend service to connect to the database. We disable it to save costs when not in use.

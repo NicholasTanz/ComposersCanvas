@@ -96,7 +96,7 @@ jobs:
 
       # Build the Docker image
       - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/backend:${{ github.run_number }} ./backend
+        run: docker build -f ./backend/dockerfile.prod -t ${{ secrets.DOCKER_USERNAME }}/backend:${{ github.run_number }} ./backend
 
       # Log in to Docker Hub
       - name: Log in to Docker Hub
