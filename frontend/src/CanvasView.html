@@ -135,7 +135,7 @@
 
         // Function to render the entire stave including multiple measures
         function renderNotes() {
-            staveWidth = 100*timeSignatureNumerator;
+            staveWidth = 70*timeSignatureNumerator;
             context.clear();
             divNotesDisplay.innerHTML = "<strong>Notes Array:</strong> " + JSON.stringify(notes, null, 2);
             notes = makeProperMeasure(notes);
@@ -439,9 +439,14 @@
 
         document.getElementById("update-key").addEventListener("click", () => {
             const inputKey = document.getElementById("key-signature").value.trim();
-            if (inputKey) {
+            const validKeySignatures = ["C", "G", "D", "A", "E", "B", "F#", "C#", "F", "Bb", "Eb", "Ab", "Db", "Fb", "Cb"];
+
+            // Check if inputKey is in the list of valid key signatures
+            if (validKeySignatures.includes(inputKey)) {
                 currentKeySignature = inputKey; // Update the key signature
                 renderNotes(); // Re-render with the new key signature
+            } else {
+                alert("Invalid key signature. Please enter a valid key signature.");
             }
         });
 
