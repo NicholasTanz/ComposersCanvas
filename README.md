@@ -52,3 +52,7 @@ To access the PostgreSQL database via the terminal, use the following command:
 ```sh
 docker exec -it composerscanvas-db-1 psql -U username -d music_composer
 ```
+
+## Deployment
+
+We utilize Google Cloud Platform (GCP) for deployment. To see more information about the deployment setup, view the deployment [README](deployment/README.md).

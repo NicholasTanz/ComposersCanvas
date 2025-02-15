@@ -22,7 +22,7 @@ jobs:
 
       - name: Build and tag frontend image
         run: |
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/frontend:${{ github.run_number }} ./frontend
+          docker build -f ./frontend/dockerfile.prod -t ${{ secrets.DOCKER_USERNAME }}/frontend:${{ github.run_number }} ./frontend
 
       - name: Push frontend image to Docker Hub
         run: docker push ${{secrets.DOCKER_USERNAME }}/frontend:${{ github.run_number }}
