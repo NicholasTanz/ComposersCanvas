@@ -14,6 +14,39 @@ function autoRestartTone() {
     }
 }
 
+function getDuration(timeString, duration, tempo) {
+    // Split the string by colon
+    const parts = timeString.split(':');
+
+    // Parse measures, beats, and sixteenths
+    var measures = parseInt(parts[0]);
+    var beats = (parts.length >= 2) ? parseInt(parts[1]) : 0;
+    var sixteenths = parts.length === 3 ? parseInt(parts[2]) : 0;
+
+    // For now, no measure overflow.
+    // Shouldn't matter, as we are just calculating total time.
+    if (duration === "1n") {
+        beats += 4;
+    } else if (duration === "2n") {
+        beats += 2;
+    } else if (duration === "4n") {
+        beats += 1;
+    } else if (duration === "8n") {
+        sixteenths += 2;
+    } else if (duration === "16n") {
+        sixteenths += 1;
+    }
+
+    // Currently, time signature is 4 to a measure.
+    const total = measures * 4 + beats / 4 + sixteenths / 16;
+    //console.log(total);
+    // Calculate the total time in seconds
+    const seconds = total * 60 / tempo;
+    //console.log(seconds);
+
+    return Math.ceil(seconds);
+}
+
 // Listen for state changes and restart if needed
 Tone.getContext().rawContext.onstatechange = () => {
     if (Tone.getContext().rawContext.state === "suspended") {
@@ -99,13 +132,14 @@ playButton.onclick = async () => {
     // part.loopEnd = "1m"; // Duration of the loop (optional)
 
     // Start the transport and the part
-    const transport = Tone.getTransport();
+    const transport = Tone.getTransport(); // Can be removed.
     // const context = Tone.getContext();
     // if (context.state !== "running") {
     //     context.resume();
     // }
     transport.bpm.value = tempoSlider.value; // Set the tempo
     part.start(0);
+    part.loop = 1;
     transport.start();
 
     const lastNoteTime = sequence[sequence.length - 1][0]; //+ sequence[sequence.length - 1][2];
@@ -156,9 +190,33 @@ tempoSlider.max = 180;
 tempoSlider.value = 120;
 currentTempo.textContent = tempoSlider.value;
 tempoSlider.oninput = () => {
-    Tone.getTransport().bpm.value = parseInt(tempoSlider.value);
-    currentTempo.textContent = Tone.getTransport().bpm.value;
+    Tone.getTransport().bpm.value = Math.floor(parseInt(tempoSlider.value));
+    currentTempo.textContent = Math.floor(Tone.getTransport().bpm.value);
 }
-document.body.appendChild(tempoSlider);
 document.body.appendChild(currentTempo);
+document.body.appendChild(tempoSlider);
 
+const playbackTime = document.createElement('span'); // Not correct
+const playbackSlider = document.createElement('input');
+const playbackDuration = document.createElement('span');
+playbackTime.textContent = playbackSlider.value;
+//playbackDuration.textContent = 100;
+
+playbackSlider.type = 'range';
+playbackSlider.min = 0;
+const lastNote = sequence[sequence.length - 1];
+playbackSlider.value = 0;
+
+// Notes on autoupdate:
+// Surely it's optimized enough, but maybe some of these shouldn't be updated until I press play.
+// Namely scrubber (not a scrubber, the term for the slider shows duration).
+const autoUpdate = setInterval(() => {
+    playbackSlider.max = getDuration(lastNote[0], lastNote[2], tempoSlider.value);
+    playbackDuration.textContent = `0:${(playbackSlider.max).padStart(2, '0')}`;
+    playbackTime.textContent = `0:${Math.floor(Tone.getTransport().seconds).toString().padStart(2, '0')}`;
+    playbackSlider.value = Math.floor(Tone.getTransport().seconds);
+}, 100);
+
+document.body.appendChild(playbackTime);
+document.body.appendChild(playbackSlider);
+document.body.appendChild(playbackDuration);
