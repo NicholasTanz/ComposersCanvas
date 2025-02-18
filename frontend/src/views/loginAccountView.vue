@@ -12,12 +12,13 @@ const email = ref('');
 const response = ref(null);
 const loginStatus = ref('');
 const submitted = ref(false);
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 const handleSubmit = async (event) => {
   event.preventDefault();
   submitted.value = true;
   try {
-    const res = await axios.post("http://localhost:5000/login", {
+    const res = await axios.post(backendUrl+"/login", {
       username: username.value,
       password: password.value,
       email: email.value

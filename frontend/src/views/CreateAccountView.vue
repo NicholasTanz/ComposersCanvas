@@ -3,7 +3,7 @@ import { ref } from 'vue';
 import axios from 'axios';
 import Navbar from '../components/Navbar.vue';
 
-
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 const username = ref('');
 const password = ref('');
 const email = ref('');
@@ -12,7 +12,8 @@ const response = ref(null);
 const handleSubmit = async (event) => {
 
   try {
-    const res = await axios.post("http://localhost:5000/register", {
+    console.log(backendUrl+"/register");
+    const res = await axios.post(backendUrl+"/register", {
       username: username.value,
       password: password.value,
       email: email.value
