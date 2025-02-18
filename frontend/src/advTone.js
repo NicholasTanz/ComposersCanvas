@@ -19,7 +19,7 @@ function getDuration(timeString, duration, tempo) {
     const parts = timeString.split(':');
 
     // Parse measures, beats, and sixteenths
-    var measures = parseInt(parts[0]);
+    var measures = parseInt(parts[0]); // im not a jshead
     var beats = (parts.length >= 2) ? parseInt(parts[1]) : 0;
     var sixteenths = parts.length === 3 ? parseInt(parts[2]) : 0;
 
