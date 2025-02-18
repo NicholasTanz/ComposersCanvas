@@ -33,7 +33,6 @@ const handleSubmit = async (event) => {
 </script>
 
 <template>
-  <div :class="{ dark: darkMode }">
     <div class="container">
       <Navbar />
       <h2 class="text-3xl font-bold text-yellow-300">Create Account</h2>
@@ -53,7 +52,6 @@ const handleSubmit = async (event) => {
         <button type="submit" class="btn-primary">Submit</button>
       </form>
     </div>
-  </div>
 </template>
 
 <style scoped>

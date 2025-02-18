@@ -1,10 +1,9 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from .models import checkUserExists, addUser, removeUser
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta, timezone
 import jwt
 import os
-
 
 def register_routes(app : Flask):
     @app.route("/")
@@ -66,9 +65,38 @@ def register_routes(app : Flask):
             str(os.getenv("SECRET_KEY")),
             algorithm="HS256"
             )
+        
+        response = make_response(jsonify({"message": "Login successful"}), 200)
+        response.set_cookie(
+            "jwt",
+            token,
+            httponly=True, # this will prevent the cookie from being accessed by JavaScript.
+            samesite="Lax", # this will prevent the cookie from being sent cross-origin.
+        )
 
-        return jsonify({"message": "Login successful", "token" : token}), 200
+        return response
 
+    # this route will be used to accept a json web token and log the user out.
+    @app.route('/logout', methods=['POST'])
+    def logout():
+        response = make_response(jsonify({"message": "Logout successful"}))
+        response.set_cookie("jwt", "", expires=0, httponly=True, secure=True, samesite="Strict")
+        return response
+    
+    @app.route('/check-auth', methods=['GET'])
+    def check_auth():
+        token = request.cookies.get('jwt')
+
+        if not token:
+            return jsonify({"authenticated": False}), 401
+
+        try:
+            decoded = jwt.decode(token, str(os.getenv("SECRET_KEY")), algorithms=["HS256"])
+            return jsonify({"authenticated": True, "user": decoded["username"]})
+        except jwt.ExpiredSignatureError:
+            return jsonify({"authenticated": False, "error": "Token expired"}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({"authenticated": False, "error": "Invalid token"}), 401
 
     # delete a user from the database.
     @app.route('/delete_user', methods=['POST'])

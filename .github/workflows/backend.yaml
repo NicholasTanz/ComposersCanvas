@@ -41,6 +41,7 @@ jobs:
       FLASK_RUN_HOST: "0.0.0.0"
       FLASK_RUN_PORT: 5000
       DATABASE_URL: "postgresql://username:password@db:5432/music_composer"
+      CORS_ORIGINS: "http://localhost:5173"
 
     steps:
       # Checkout the repository

@@ -26,10 +26,11 @@ const handleSubmit = async (event) => {
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json"
-      }
+      },
+      withCredentials: true,
     });
 
-    authStore.setToken(res.data.token); // Set the token in the store
+    await authStore.checkAuthStatus(); // Check if user is authenticated
     response.value = res.data;
     loginStatus.value = "Login Successful!";
   } catch (error) {
@@ -41,7 +42,6 @@ const handleSubmit = async (event) => {
 </script>
 
 <template>
-  <div :class="{ dark: darkMode }">
     <div class="container">
       <Navbar />
       <h2 class="text-3xl font-bold text-yellow-300">Login to Account</h2>
@@ -67,7 +67,6 @@ const handleSubmit = async (event) => {
       </p>
     </div>
     </div>
-  </div>
 </template>
 
 <style scoped>
