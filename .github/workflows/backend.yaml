@@ -37,11 +37,6 @@ jobs:
   test:
     needs: lint
     runs-on: ubuntu-latest
-    env:
-      FLASK_RUN_HOST: "0.0.0.0"
-      FLASK_RUN_PORT: 5000
-      DATABASE_URL: "postgresql://username:password@db:5432/music_composer"
-      CORS_ORIGINS: "http://localhost:5173"
 
     steps:
       # Checkout the repository
@@ -61,13 +56,6 @@ jobs:
       - name: Install Docker Compose
         run: sudo apt-get install -y docker-compose
         
-      - name: Set environment variables
-        run: |
-          echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> $GITHUB_ENV
-          echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> $GITHUB_ENV
-          echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> $GITHUB_ENV
-          echo "SECRET_KEY=${{ secrets.LOCAL_DEV_SECRET_KEY }}" >> $GITHUB_ENV
-
       - name: Build and start services
         run: docker compose up -d --build backend db
 
