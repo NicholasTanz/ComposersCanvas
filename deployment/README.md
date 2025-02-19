@@ -14,6 +14,11 @@
    - **Minimum Instances:** Set to `1` (no need for more than one instance at the moment).
    - **All other settings:** Leave as default.
 
+Note:
+- when building the docker image, utilize the following command:
+```bash
+docker build --build-arg VITE_BACKEND_URL="<deployed_backend_url>" -f ./frontend/dockerfile.prod -t gcr.io/ece49595-seniordesign/frontend ./frontend
+```
 ---
 
 ## Backend Deployment
