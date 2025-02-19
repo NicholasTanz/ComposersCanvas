@@ -1,14 +1,11 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import axios from 'axios';
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 export const useAuthStore = defineStore('auth', () => {
   // State
   const isAuthenticated = ref(false);
-
-  // Getters
-  const getAuthStatus = computed(() => isAuthenticated.value);
 
   // Actions
   async function logout() {
@@ -29,5 +26,5 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  return { isAuthenticated, getAuthStatus, logout, checkAuthStatus };
+  return { isAuthenticated, logout, checkAuthStatus };
 });

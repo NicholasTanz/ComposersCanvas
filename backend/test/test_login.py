@@ -2,7 +2,7 @@
 After spinning up the Flask server, we can test the login endpoint by sending a POST request to the /login endpoint with a JSON payload containing the username and password fields. We can use the requests library to send the HTTP request.
 '''
 import requests
-import os
+import os 
 import jwt
 from datetime import datetime, timedelta, timezone
 
@@ -35,15 +35,17 @@ class TestLogin:
         response = requests.post(URL, json=payload, headers=headers)
         
         assert response.status_code == 200
-        assert response.json()["message"] == "Login successful"
-        assert "token" in response.json()
 
-        SECRET_KEY = os.getenv("SECRET_KEY")
-        assert response.json()["token"] == jwt.encode(
-            {"username": "example_user", "exp": datetime.now(timezone.utc) + timedelta(hours=1)},
-            str(SECRET_KEY),
-            algorithm="HS256"
-        )
+        # test JWT token.
+        assert "jwt" in response.cookies
+
+        auth_response = requests.get("http://localhost:5000/check-auth", cookies=response.cookies)
+        auth_data = auth_response.json()
+
+        assert auth_response.status_code == 200
+        assert auth_data["authenticated"] == True
+        assert auth_data["user"] == payload["username"]
+
 
     def test_invalidLogin_NoUsername(self):
         payload = {
