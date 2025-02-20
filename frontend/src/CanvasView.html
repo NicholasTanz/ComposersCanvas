@@ -95,6 +95,7 @@
         let dur = "q";
         let isRestMode = false; // Track if we're in rest mode
         let currentKeySignature = 'C'
+        let keysigadd = 0;
         let timeSignatureNumerator = 4; 
         let timeSignatureDenominator = 4; 
         let staveWidth = 100*timeSignatureNumerator;
@@ -121,6 +122,24 @@
             b: ["c"], // Ensure b maps to c, not bb
         };
 
+        const keysignum = {
+            "C":0,
+            "G":1,
+            "D":2,
+            "A":3,
+            "E":4,
+            "B":5,
+            "F#":6,
+            "C#":7,
+            "F":1,
+            "Bb":2,
+            "Eb":3,
+            "Ab":4,
+            "Db":5,
+            "Gb":6,
+            "Cb":7,
+        };
+
         const reverseHalfSteps = Object.fromEntries(
             Object.entries(halfSteps).flatMap(([note, options]) =>
                 options.map((nextNote) => [nextNote, note])
@@ -135,26 +154,28 @@
 
         // Function to render the entire stave including multiple measures
         function renderNotes() {
-            staveWidth = 70*timeSignatureNumerator;
+            staveWidth = (70 * timeSignatureNumerator) + keysignum[currentKeySignature]*30; // Default width for measures
             context.clear();
             divNotesDisplay.innerHTML = "<strong>Notes Array:</strong> " + JSON.stringify(notes, null, 2);
             notes = makeProperMeasure(notes);
-            const measures = groupNotesIntoMeasures(notes); // Remove fixed note count
+            const measures = groupNotesIntoMeasures(notes); // Group notes into measures
             const totalRows = Math.ceil(measures.length / Math.floor(window.innerWidth / staveWidth));
 
             adjustSVGHeight(totalRows);
 
             let globalIndex = 0; // Global index across all measures
+            let firstMeasure = true; // Flag to identify the first measure
 
             measures.forEach((measureNotes, measureIndex) => {
                 const position = calculateStavePosition(measureIndex);
+                const measureStaveWidth = firstMeasure ? staveWidth+keysigadd : staveWidth; // Make first measure larger
+                const stave = new VF.Stave(position.x, position.y, measureStaveWidth);
 
-                const stave = new VF.Stave(position.x, position.y, staveWidth);
-                if (measureIndex === 0) {
+                if (firstMeasure) {
                     stave.addClef("treble").addTimeSignature(timeSignatureNumerator + "/" + timeSignatureDenominator).addKeySignature(currentKeySignature);
-                    //stave.Accidental.applyAccidentals([voice], `C`);
-
+                    firstMeasure = false; // Set the flag to false after the first measure
                 }
+
                 stave.setContext(context).draw();
 
                 // Fixed time signature: 4 beats per measure
@@ -182,14 +203,13 @@
                 });
 
                 voice.addTickables(measureTickables);
-                VF.Accidental.applyAccidentals([voice], currentKeySignature)
-                new VF.Formatter().joinVoices([voice]).format([voice], staveWidth - 50);
+                VF.Accidental.applyAccidentals([voice], currentKeySignature);
+                new VF.Formatter().joinVoices([voice]).format([voice], measureStaveWidth - 50);
                 voice.draw(context, stave);
             });
 
             attachClickEvents();
         }
-
         // Group notes into measures
         function groupNotesIntoMeasures(notes) {
             const measures = [];
@@ -320,7 +340,7 @@
             const columnIndex = measureIndex % measuresPerRow;
 
             return {
-                x: 10 + columnIndex * staveWidth,
+                x: (rowIndex == 0) ? (columnIndex == 0 ?(10 + columnIndex * staveWidth):(10 + (columnIndex+keysigadd) * staveWidth)):(10 + columnIndex * staveWidth),
                 y: 40 + rowIndex * rowSpacing,
                 rowIndex: rowIndex,
             };
