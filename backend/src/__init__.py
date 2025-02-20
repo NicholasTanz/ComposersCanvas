@@ -14,7 +14,7 @@ def create_app():
     db.init_app(app)
 
     # Enable CORS
-    CORS(app)
+    CORS(app, supports_credentials=True, origins=[os.getenv("CORS_ORIGINS")], methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"], allow_headers=["*"])
 
     # Register routes
     register_routes(app)

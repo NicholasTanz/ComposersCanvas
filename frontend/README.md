@@ -8,12 +8,17 @@ The Frontend of Composers Canvas is built using Vue.js and handles creating comp
 cd frontend
 ```
 
-2. install dependencies
+2. add .env file in the frontend directory with the following content:
+```sh
+VITE_BACKEND_URL=http://localhost:5000
+```
+
+3. install dependencies
 ```sh
 npm install
 ```
 
-3. start the frontend in development mode. 
+4. start the frontend in development mode. 
 ```sh
 npm run dev
 ```     
