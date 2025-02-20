@@ -383,9 +383,18 @@
                 moveNoteHalfStep(selectedNoteIndex, "up");
             } else if (event.key === "ArrowDown") {
                 moveNoteHalfStep(selectedNoteIndex, "down");
-            } else if (event.key === "Enter") {
-                selectedNoteIndex = (selectedNoteIndex + 1) % notes.length;
-                renderNotes();
+            } else if (event.key === "ArrowRight") {
+                // Move forward in the notes array
+                if (selectedNoteIndex !== null) {
+                    selectedNoteIndex = (selectedNoteIndex + 1) % notes.length;
+                    renderNotes();
+                }
+            } else if (event.key === "ArrowLeft") {
+                // Move backward in the notes array
+                if (selectedNoteIndex !== null) {
+                    selectedNoteIndex = (selectedNoteIndex - 1 + notes.length) % notes.length;
+                    renderNotes();
+                }
             } else if (event.key === "a") {
                 if (selectedNoteIndex === null) {
                     // If no note is selected, add the note at the end
