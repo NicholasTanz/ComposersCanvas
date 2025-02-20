@@ -12,7 +12,6 @@ const response = ref(null);
 const handleSubmit = async (event) => {
 
   try {
-    console.log(backendUrl+"/register");
     const res = await axios.post(backendUrl+"/register", {
       username: username.value,
       password: password.value,

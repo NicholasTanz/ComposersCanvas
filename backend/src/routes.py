@@ -70,8 +70,9 @@ def register_routes(app : Flask):
         response.set_cookie(
             "jwt",
             token,
-            httponly=True, # this will prevent the cookie from being accessed by JavaScript.
-            samesite="Lax", # this will prevent the cookie from being sent cross-origin.
+            httponly=True,
+            secure=os.getenv("CORS_ORIGINS")[:5] == "https", 
+            samesite="None" if os.getenv("CORS_ORIGINS")[:5] == "https" else "Lax",
         )
 
         return response
@@ -80,7 +81,7 @@ def register_routes(app : Flask):
     @app.route('/logout', methods=['POST'])
     def logout():
         response = make_response(jsonify({"message": "Logout successful"}))
-        response.set_cookie("jwt", "", expires=0, httponly=True, secure=True, samesite="Strict")
+        response.set_cookie("jwt", "", httponly=True, secure=os.getenv("CORS_ORIGINS")[:5] == "https", samesite="None" if os.getenv("CORS_ORIGINS")[:5] == "https" else "Lax")
         return response
     
     @app.route('/check-auth', methods=['GET'])
