@@ -1,6 +1,9 @@
 from flask import Flask, request, jsonify
 from .models import checkUserExists, addUser, removeUser
 from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime, timedelta, timezone
+import jwt
+import os
 
 
 def register_routes(app : Flask):
@@ -56,7 +59,15 @@ def register_routes(app : Flask):
         if not check_password_hash(user.password, password):
             return jsonify({"message": "Invalid credentials"}), 401
         
-        return jsonify({"message": "Login successful"}), 200
+
+        # Generate JWT token
+        token = jwt.encode(
+             {"username": username, "exp": datetime.now(timezone.utc) + timedelta(hours=1)},
+            str(os.getenv("SECRET_KEY")),
+            algorithm="HS256"
+            )
+
+        return jsonify({"message": "Login successful", "token" : token}), 200
 
 
     # delete a user from the database.
@@ -87,9 +98,19 @@ def register_routes(app : Flask):
     # this route will be used to accept a composition and store it in the database.
     @app.route('/store_composition', methods=['POST'])
     def store_composition():
+        # this will accept a json web token to make sure the user is authenticated. 
         pass
 
     # this route will be used to accept all available compositions and return them to the user.
     @app.route('/get_compositions', methods=['GET'])
     def get_compositions():
+        # this will accept a json web token to make sure the user is authenticated.
         pass
+
+
+def verify_token(token):
+    try:
+        jwt.decode(token, str(os.getenv("SECRET_KEY")), algorithms=["HS256"])
+        return jsonify({"message": "Valid token"}), 200
+    except: # noqa: E722 
+        return jsonify({"message": "Invalid token"}), 401

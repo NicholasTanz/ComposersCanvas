@@ -2,6 +2,10 @@
 After spinning up the Flask server, we can test the login endpoint by sending a POST request to the /login endpoint with a JSON payload containing the username and password fields. We can use the requests library to send the HTTP request.
 '''
 import requests
+import os
+import jwt
+from datetime import datetime, timedelta, timezone
+
 URL = "http://localhost:5000/login"
 
 class TestLogin:
@@ -32,7 +36,15 @@ class TestLogin:
         
         assert response.status_code == 200
         assert response.json()["message"] == "Login successful"
-    
+        assert "token" in response.json()
+
+        SECRET_KEY = os.getenv("SECRET_KEY")
+        assert response.json()["token"] == jwt.encode(
+            {"username": "example_user", "exp": datetime.now(timezone.utc) + timedelta(hours=1)},
+            str(SECRET_KEY),
+            algorithm="HS256"
+        )
+
     def test_invalidLogin_NoUsername(self):
         payload = {
             "password": "securepassword123"
@@ -46,6 +58,7 @@ class TestLogin:
         
         assert response.status_code == 400
         assert response.json()["message"] == "All fields are required"
+        assert "token" not in response.json()
     
     def test_invalidLogin_NoPassword(self):
         payload = {
@@ -60,7 +73,9 @@ class TestLogin:
         
         assert response.status_code == 400
         assert response.json()["message"] == "All fields are required"
+        assert "token" not in response.json()
     
+
     def test_invalidLogin_UserDoesntExist(self):
         payload = {
             "username": "unknown_user",
@@ -75,7 +90,9 @@ class TestLogin:
         
         assert response.status_code == 401
         assert response.json()["message"] == "Invalid credentials"
+        assert "token" not in response.json()
     
+
     def test_invalidLogin_IncorrectPassword(self):
         payload = {
             "username": "example_user",
@@ -89,3 +106,4 @@ class TestLogin:
         response = requests.post(URL, json=payload, headers=headers)
         assert response.status_code == 401
         assert response.json()["message"] == "Invalid credentials"
+        assert "token" not in response.json()
