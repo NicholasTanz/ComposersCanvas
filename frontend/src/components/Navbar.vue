@@ -4,7 +4,7 @@
         <RouterLink to="/" class="nav-link">Home</RouterLink>
         <RouterLink to="/createAccount" class="nav-link">Create an Account</RouterLink>
         <RouterLink to="/login" class="nav-link">Login</RouterLink>
-        <RouterLink to="/create" class="nav-link">Create Composition</RouterLink>
+        <a class="nav-link" href="/CanvasView.html">Create Composition</a>
         <RouterLink to="/saved" class="nav-link">View Saved Compositions</RouterLink>
       </div>
     </nav>
