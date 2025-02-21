@@ -13,6 +13,8 @@ import HelloWorld from './components/HelloWorld.vue'
       <nav>
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/about">About</RouterLink>
+        <!-- Update the link for canvas -->
+        <a href="/CanvasView.html">Canvas</a>
       </nav>
     </div>
   </header>

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Staff Notes</title>
+    <script src="https://unpkg.com/vexflow/releases/vexflow-min.js"></script>
+    <style>
+        .selected-note {
+            fill: red !important;
+            stroke: red !important;
+        }
+        #notes-display {
+            margin-top: 20px;
+            font-family: Arial, sans-serif;
+            font-size: 14px;
+            color: #333;
+        }
+        #note-selection {
+            position: relative;
+            display: inline-block;
+        }
+
+        #note-options {
+            display: none;
+            position: absolute;
+            top: 50px;
+            left: 0;
+            background: white;
+            border: 1px solid black;
+            padding: 5px;
+        }
+
+        #note-selection:hover #note-options,
+        #note-options:focus-within {
+            display: flex;
+            flex-direction: row;
+            gap: 5px;
+        }
+
+        .note-option img {
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <button onclick="window.location.href = '/'">Back to Vue App</button>
+
+
+    <div>
+        <div id="note-selection">
+            <button id="note-button">
+                <img src="assets/quarter.png" alt="Quarter Note" id="note-icon" style="width: 40px; height: 40px;">
+            </button>
+            <div id="note-options" class="hidden">
+                <button class="note-option" data-value="w"><img src="assets/whole.svg" alt="Whole Note"></button>
+                <button class="note-option" data-value="hd"><img src="assets/dotted.svg" alt="Dotted Half Note"></button>
+                <button class="note-option" data-value="h"><img src="assets/half.png" alt="Half Note"></button>
+                <button class="note-option" data-value="q"><img src="assets/quarter.png" alt="Quarter Note"></button>
+                <button class="note-option" data-value="8"><img src="assets/eighth.png" alt="Eighth Note"></button>
+                <button class="note-option" data-value="16"><img src="assets/sixteenth.png" alt="Sixteenth Note"></button>
+            </div>
+        </div>
+        <button id="rest-button">Rest</button>
+    </div>
+    <div>
+        <label for="key-signature">Enter Key Signature:</label>
+        <input type="text" id="key-signature" placeholder="C" />
+        <button id="update-key">Update Key</button>
+    </div>
+    <div>
+        <label for="numerator">Enter Time Signature Numerator:</label>
+        <input type="number" id="numerator" placeholder="4" />
+        <label for="denominator">Enter Time Signature Denominator:</label>
+        <input type="number" id="denominator" placeholder="4" />
+        <button id="update-time">Update Time Signature</button>
+    </div>
+    <div id="my-stave"></div>
+    <div id="notes-display"></div> <!-- Area to display the notes array -->
+
+    <script>
+        const VF = Vex.Flow;
+        const divStave = document.getElementById("my-stave");
+        const divNotesDisplay = document.getElementById("notes-display");
+        const renderer = new VF.Renderer(divStave, VF.Renderer.Backends.SVG);
+        const context = renderer.getContext();
+
+        
+
+        // Initial notes array
+        let notes = [
+            { key: "g/4", duration: "q" },
+        ];
+
+        let selectedNoteIndex = null; // Track the selected note index
+        let dur = "q";
+        let isRestMode = false; // Track if we're in rest mode
+        let currentKeySignature = 'C'
+        let keysigadd = 0;
+        let timeSignatureNumerator = 4; 
+        let timeSignatureDenominator = 4; 
+        let staveWidth = 100*timeSignatureNumerator;
+        let rowSpacing = 120;
+
+        // Define accidentals for sharp and flat handling
+        const halfSteps = {
+            c: ["c#", "db"],
+            "c#": ["d"],
+            db: ["d"],
+            d: ["d#", "eb"],
+            "d#": ["e"],
+            eb: ["e"],
+            e: ["f"],
+            f: ["f#", "gb"],
+            "f#": ["g"],
+            gb: ["g"],
+            g: ["g#", "ab"],
+            "g#": ["a"],
+            ab: ["a"],
+            a: ["a#", "bb"],
+            "a#": ["b"],
+            bb: ["b"],
+            b: ["c"], // Ensure b maps to c, not bb
+        };
+
+        const keysignum = {
+            "C":0,
+            "G":1,
+            "D":2,
+            "A":3,
+            "E":4,
+            "B":5,
+            "F#":6,
+            "C#":7,
+            "F":1,
+            "Bb":2,
+            "Eb":3,
+            "Ab":4,
+            "Db":5,
+            "Gb":6,
+            "Cb":7,
+        };
+
+        const reverseHalfSteps = Object.fromEntries(
+            Object.entries(halfSteps).flatMap(([note, options]) =>
+                options.map((nextNote) => [nextNote, note])
+            )
+        );
+
+        // Adjust the SVG height dynamically
+        function adjustSVGHeight(totalRows) {
+            const newHeight = (totalRows * rowSpacing) + 100;
+            renderer.resize(window.innerWidth, newHeight);
+        }
+
+        // Function to render the entire stave including multiple measures
+        function renderNotes() {
+            staveWidth = (70 * timeSignatureNumerator) + keysignum[currentKeySignature]*30; // Default width for measures
+            context.clear();
+            divNotesDisplay.innerHTML = "<strong>Notes Array:</strong> " + JSON.stringify(notes, null, 2);
+            notes = makeProperMeasure(notes);
+            const measures = groupNotesIntoMeasures(notes); // Group notes into measures
+            const totalRows = Math.ceil(measures.length / Math.floor(window.innerWidth / staveWidth));
+
+            adjustSVGHeight(totalRows);
+
+            let globalIndex = 0; // Global index across all measures
+            let firstMeasure = true; // Flag to identify the first measure
+
+            measures.forEach((measureNotes, measureIndex) => {
+                const position = calculateStavePosition(measureIndex);
+                const measureStaveWidth = firstMeasure ? staveWidth+keysigadd : staveWidth; // Make first measure larger
+                const stave = new VF.Stave(position.x, position.y, measureStaveWidth);
+
+                if (firstMeasure) {
+                    stave.addClef("treble").addTimeSignature(timeSignatureNumerator + "/" + timeSignatureDenominator).addKeySignature(currentKeySignature);
+                    firstMeasure = false; // Set the flag to false after the first measure
+                }
+
+                stave.setContext(context).draw();
+
+                // Fixed time signature: 4 beats per measure
+                const voice = new VF.Voice({ num_beats: timeSignatureNumerator, beat_value: timeSignatureDenominator });
+                voice.setStrict(false); // Allow flexible durations without strict validation
+
+                const measureTickables = measureNotes.map((note, index) => {
+                    const staveNote = new VF.StaveNote({
+                        clef: "treble",
+                        keys: [note.key],
+                        duration: note.duration,
+                    });
+                    // Add dot if it's a dotted note
+                    if (note.duration.includes("d")) {
+                        staveNote.addDotToAll();
+                    }
+                    // Highlight the selected note by comparing global index
+                    if (globalIndex === selectedNoteIndex) {
+                        staveNote.setStyle({ fillStyle: "red", strokeStyle: "red" });
+                    }
+
+                    globalIndex++; // Increment global index for each note
+
+                    return staveNote;
+                });
+
+                voice.addTickables(measureTickables);
+                VF.Accidental.applyAccidentals([voice], currentKeySignature);
+                new VF.Formatter().joinVoices([voice]).format([voice], measureStaveWidth - 50);
+                voice.draw(context, stave);
+            });
+
+            attachClickEvents();
+        }
+        // Group notes into measures
+        function groupNotesIntoMeasures(notes) {
+            const measures = [];
+            let currentMeasure = [];
+            let currentBeats = 0;
+
+            const durationValues = {
+                "w": timeSignatureDenominator,
+                "hd": timeSignatureDenominator * 0.75,
+                "h": timeSignatureDenominator * 0.5,
+                "q": timeSignatureDenominator * 0.25,
+                "8": timeSignatureDenominator * (1/8),
+                "16": timeSignatureDenominator * (1/16),
+                "wr": timeSignatureNumerator,
+                "hdr": timeSignatureDenominator * 0.75,
+                "hr": timeSignatureDenominator * 0.5,
+                "qr": timeSignatureDenominator * 0.25,
+                "8r": timeSignatureDenominator * (1/8),
+                "16r": timeSignatureDenominator * (1/16)
+            };
+
+            notes.forEach(note => {
+                const beats = durationValues[note.duration] || 1; // Default to 1 beat if unknown
+                if (currentBeats + beats > timeSignatureNumerator) {
+                    measures.push(currentMeasure);
+                    currentMeasure = [];
+                    currentBeats = 0;
+                }
+                currentMeasure.push(note);
+                currentBeats += beats;
+            });
+            measures.push(currentMeasure);
+            return measures;
+        }
+
+        // Function to add rests
+        function makeProperMeasure(notes) {
+            const resultNotes = [];
+            let currentMeasure = [];
+            let currentBeats = 0;
+            const allRests = true;
+
+            const durationValues = {
+                "w": timeSignatureDenominator,
+                "hd": timeSignatureDenominator * 0.75,
+                "h": timeSignatureDenominator * 0.5,
+                "q": timeSignatureDenominator * 0.25,
+                "8": timeSignatureDenominator * (1/8),
+                "16": timeSignatureDenominator * (1/16),
+                "wr": timeSignatureNumerator,
+                "hdr": timeSignatureDenominator * 0.75,
+                "hr": timeSignatureDenominator * 0.5,
+                "qr": timeSignatureDenominator * 0.25,
+                "8r": timeSignatureDenominator * (1/8),
+                "16r": timeSignatureDenominator * (1/16)
+            };
+
+            notes.forEach(note => {
+                const beats = durationValues[note.duration] || 1; // Default to 1 beat if unknown
+                if(durationValues[note.duration] <= timeSignatureNumerator) {
+                    if (currentBeats + beats > timeSignatureNumerator) {
+                        while (currentBeats < timeSignatureNumerator) {
+                            const restDuration = getRestDuration(timeSignatureNumerator - currentBeats);
+                            currentMeasure.push({ key: "b/4", duration: restDuration + "r" });
+                            currentBeats += durationValues[restDuration];
+                        }
+                        // Now, check if the current measure is all rests (excluding whole rests)
+                        if (isMeasureAllRests(currentMeasure) && !containsWholeRest(currentMeasure)) {
+                            // Do not push this measure if it only contains rests (except for whole rest)
+                            console.log("Skipping measure with only rests (except whole rest).");
+                        } else {
+                            resultNotes.push(...currentMeasure); // Otherwise, push it to the result
+                        }
+
+                        // Reset the measure and beats tracker for the next measure
+                        currentMeasure = [];
+                        currentBeats = 0;
+                    }
+
+                    currentMeasure.push(note);
+                    currentBeats += beats;
+                }
+                
+            });
+
+            // Final check for the last measure
+            while (currentBeats < timeSignatureNumerator) {
+                const restDuration = getRestDuration(timeSignatureNumerator - currentBeats);
+                currentMeasure.push({ key: "b/4", duration: restDuration + "r" });
+                currentBeats += durationValues[restDuration];
+            }
+            if (isMeasureAllRests(currentMeasure) && !containsWholeRest(currentMeasure)) {
+                console.log("Skipping last measure with only rests (except whole rest).");
+            } else {
+                resultNotes.push(...currentMeasure); // Add the last measure if valid
+            }
+
+            return resultNotes;
+        }
+
+        // Helper function to check if a measure contains only rests (excluding whole rests)
+        function isMeasureAllRests(measure) {
+            return measure.every(note => note.duration.endsWith("r"));
+        }
+
+        // Helper function to check if a measure contains at least one whole rest
+        function containsWholeRest(measure) {
+            return measure.some(note => note.duration === "wr");
+        }
+
+
+        // Helper function to determine the rest duration based on the remaining beats
+        function getRestDuration(remainingBeats) {
+            if (remainingBeats === timeSignatureNumerator) return "w"; // Whole rest
+            if (remainingBeats >= timeSignatureDenominator*(3/4)) return "hd"; // Dotted half rest
+            if (remainingBeats >= timeSignatureDenominator*(1/2)) return "h"; // Half rest
+            if (remainingBeats >= timeSignatureDenominator*(1/4)) return "q"; // Quarter rest
+            if (remainingBeats >= timeSignatureDenominator*(1/8)) return "8"; // Eighth rest
+            return "16"; // Default to sixteenth rest
+        }
+
+
+        // Calculate stave positions
+        function calculateStavePosition(measureIndex) {
+            const screenWidth = window.innerWidth;
+            const measuresPerRow = Math.floor(screenWidth / staveWidth);
+            const rowIndex = Math.floor(measureIndex / measuresPerRow);
+            const columnIndex = measureIndex % measuresPerRow;
+
+            return {
+                x: (rowIndex == 0) ? (columnIndex == 0 ?(10 + columnIndex * staveWidth):(10 + (columnIndex+keysigadd) * staveWidth)):(10 + columnIndex * staveWidth),
+                y: 40 + rowIndex * rowSpacing,
+                rowIndex: rowIndex,
+            };
+        }
+
+        // Attach click events to the notes
+        function attachClickEvents() {
+            const noteGroups = divStave.querySelectorAll("svg g.vf-stavenote");
+            noteGroups.forEach((group, index) => {
+                group.addEventListener("click", () => {
+                    selectedNoteIndex = index; // Update the selected note index based on the global order
+                    renderNotes(); // Re-render notes to apply the highlight
+                });
+            });
+        }
+
+        // Move note by a half step (up or down)
+        function moveNoteHalfStep(index, direction) {
+            if (index === null || index < 0 || index >= notes.length) return;
+            if (notes[index].duration.includes("r")) return;
+            const [note, octave] = notes[index].key.split("/");
+
+            let newNote;
+            if (direction === "up") {
+                newNote = halfSteps[note] ? halfSteps[note][0] : note;
+                if (newNote === "c") notes[index].key = `${newNote}/${+octave + 1}`; // Handle octave change
+                else notes[index].key = `${newNote}/${octave}`;
+            } else if (direction === "down") {
+                newNote = reverseHalfSteps[note] || note;
+                if (newNote === "b") notes[index].key = `${newNote}/${+octave - 1}`; // Handle octave change
+                else notes[index].key = `${newNote}/${octave}`;
+            }
+
+            renderNotes();
+        }
+
+        // Key event listeners
+        window.addEventListener("keydown", (event) => {
+            if (event.key === "ArrowUp") {
+                moveNoteHalfStep(selectedNoteIndex, "up");
+            } else if (event.key === "ArrowDown") {
+                moveNoteHalfStep(selectedNoteIndex, "down");
+            } else if (event.key === "ArrowRight") {
+                // Move forward in the notes array
+                if (selectedNoteIndex !== null) {
+                    selectedNoteIndex = (selectedNoteIndex + 1) % notes.length;
+                    renderNotes();
+                }
+            } else if (event.key === "ArrowLeft") {
+                // Move backward in the notes array
+                if (selectedNoteIndex !== null) {
+                    selectedNoteIndex = (selectedNoteIndex - 1 + notes.length) % notes.length;
+                    renderNotes();
+                }
+            } else if (event.key === "a") {
+                if (selectedNoteIndex === null) {
+                    // If no note is selected, add the note at the end
+                    notes.push(isRestMode ? { key: "b/4", duration: dur + "r" } : { key: "g/4", duration: dur });
+                } else {
+                    const selectedNote = notes[selectedNoteIndex];
+                    if (selectedNote.duration.includes("r") && !isRestMode) {
+                        notes[selectedNoteIndex] = { key: "g/4", duration: dur };
+                    } else {
+                        // Insert the new note immediately after the selected note
+                        notes.splice(selectedNoteIndex + 1, 0, isRestMode ? { key: "b/4", duration: dur + "r" } : { key: "g/4", duration: dur });
+                        selectedNoteIndex += 1; // Update the selected note index to the newly added note
+                    }
+                }
+                renderNotes();
+            } else if (event.key === "Delete" && selectedNoteIndex !== null) {
+                notes.splice(selectedNoteIndex, 1);
+                if (selectedNoteIndex >= notes.length) {
+                    selectedNoteIndex = notes.length - 1;
+                }
+                if (notes.length === 0) {
+                    selectedNoteIndex = null;
+                }
+                renderNotes();
+            } else if (event.key === "n" && selectedNoteIndex !== null) {
+                const selectedNote = notes[selectedNoteIndex];
+                const pitch = selectedNote.key.split("/")[0];
+                const octave = selectedNote.key.split("/")[1];
+                selectedNote.key = pitch[0] + "/" + octave;
+                renderNotes();
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const noteButton = document.getElementById("note-button");
+            const noteIcon = document.getElementById("note-icon");
+            const noteOptions = document.getElementById("note-options");
+            const noteButtons = document.querySelectorAll(".note-option");
+
+            noteButtons.forEach(button => {
+                button.addEventListener("click", (event) => {
+                    const selectedNote = event.currentTarget.getAttribute("data-value");
+                    const selectedImage = event.currentTarget.querySelector("img").src;
+                    dur = selectedNote; // Update the duration variable
+                    noteIcon.src = selectedImage; // Change button icon
+
+                    // Hide dropdown after selection
+                    noteOptions.style.display = "none";
+                });
+            });
+
+            // Ensure clicking the button shows the dropdown
+            noteButton.addEventListener("click", () => {
+                noteOptions.style.display = noteOptions.style.display === "flex" ? "none" : "flex";
+            });
+
+            // Close dropdown when clicking anywhere outside
+            document.addEventListener("click", (event) => {
+                if (!noteSelection.contains(event.target)) {
+                    noteOptions.style.display = "none";
+                }
+            });
+        });
+        document.getElementById("rest-button").addEventListener("click", () => {
+            if (isRestMode == false) {
+                isRestMode = true; // Enable rest mode
+            } else {
+                isRestMode = false;
+            }
+        });
+
+        document.getElementById("update-key").addEventListener("click", () => {
+            const inputKey = document.getElementById("key-signature").value.trim();
+            const validKeySignatures = ["C", "G", "D", "A", "E", "B", "F#", "C#", "F", "Bb", "Eb", "Ab", "Db", "Fb", "Cb"];
+
+            // Check if inputKey is in the list of valid key signatures
+            if (validKeySignatures.includes(inputKey)) {
+                currentKeySignature = inputKey; // Update the key signature
+                renderNotes(); // Re-render with the new key signature
+            } else {
+                alert("Invalid key signature. Please enter a valid key signature.");
+            }
+        });
+
+        document.getElementById("update-time").addEventListener("click", () => {
+            const numerator = document.getElementById("numerator").value.trim();
+            const denominator = document.getElementById("denominator").value.trim();
+
+            // Check if numerator and denominator are provided
+            if (numerator && denominator) {
+                // Convert input to integers
+                const num = parseInt(numerator);
+                const denom = parseInt(denominator);
+
+                // Calculate the width required for the time signature based on the numerator
+                const requiredWidth = 100 * num; // 100px per unit for each beat in the numerator
+
+                // Get the screen width
+                const screenWidth = window.innerWidth;
+
+                // If the time signature width exceeds the screen width, show a popup and don't update the time signature
+                if (requiredWidth > screenWidth) {
+                    alert("Sorry, your screen is too small for this time signature.");
+                } else {
+                    // Otherwise, update the time signature
+                    timeSignatureNumerator = num;
+                    timeSignatureDenominator = denom;
+                    renderNotes(); // Re-render with the new time signature
+                }
+            }
+        });
+        renderNotes();
+    </script>
+</body>
+</html>
