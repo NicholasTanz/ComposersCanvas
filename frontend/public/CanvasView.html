@@ -6,11 +6,16 @@
     <title>Interactive Staff Notes</title>
     <script src="https://unpkg.com/vexflow/releases/vexflow-min.js"></script>
     <style>
+        html, body {
+            /*margin: 0; /* Removes default margin */
+            padding: 0; /* Removes default padding */
+            overflow-x: hidden; /* Prevent horizontal scroll if there's any overflow */
+        }
         .fixed-toolbar {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
+            width: auto;
             background: white; /* Keep it visible */
             border-bottom: 1px solid #ccc; /* Lighter boundary */
             padding: 5px 10px; /* Reduce padding */
