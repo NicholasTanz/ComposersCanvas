@@ -35,32 +35,46 @@
         #note-options:focus-within {
             display: flex;
             flex-direction: row;
-            gap: 5px;
+            
         }
 
-        .note-option img {
+        .note-option img, #rest-button img, #play-button img, #pause-button img {
             width: 30px;
             height: 30px;
             cursor: pointer;
         }
+        #rest-button.active {
+            background-color: #d3d3d3; /* Light grey color when active */
+            border: 1px solid #a1a1a1; /* Border color when active */
+        }
     </style>
 </head>
 <body>
+    <button onclick="window.location.href = '/'">Back</button>
+
     <div>
         <div id="note-selection">
             <button id="note-button">
-                <img src="assets/quarter.png" alt="Quarter Note" id="note-icon" style="width: 40px; height: 40px;">
+                <img src="images/quarter.png" alt="Quarter Note" id="note-icon" style="width: 40px; height: 40px;">
             </button>
             <div id="note-options" class="hidden">
-                <button class="note-option" data-value="w"><img src="assets/whole.svg" alt="Whole Note"></button>
-                <button class="note-option" data-value="hd"><img src="assets/dotted.svg" alt="Dotted Half Note"></button>
-                <button class="note-option" data-value="h"><img src="assets/half.png" alt="Half Note"></button>
-                <button class="note-option" data-value="q"><img src="assets/quarter.png" alt="Quarter Note"></button>
-                <button class="note-option" data-value="8"><img src="assets/eighth.png" alt="Eighth Note"></button>
-                <button class="note-option" data-value="16"><img src="assets/sixteenth.png" alt="Sixteenth Note"></button>
+                <button class="note-option" data-value="w"><img src="images/whole.svg" alt="Whole Note"></button>
+                <button class="note-option" data-value="hd"><img src="images/dotted.svg" alt="Dotted Half Note"></button>
+                <button class="note-option" data-value="h"><img src="images/half.png" alt="Half Note"></button>
+                <button class="note-option" data-value="q"><img src="images/quarter.png" alt="Quarter Note"></button>
+                <button class="note-option" data-value="8"><img src="images/eighth.png" alt="Eighth Note"></button>
+                <button class="note-option" data-value="16"><img src="images/sixteenth.png" alt="Sixteenth Note"></button>
             </div>
         </div>
-        <button id="rest-button">Rest</button>
+        <button id="rest-button">
+            <img src="images/rest.png" alt="Rest" style="width: 40px; height: 40px;">
+        </button>
+        <button id="play-button">
+            <img src="images/play.svg" alt="Play" style="width: 40px; height: 40px;">
+        </button>
+        <button id="pause-button">
+            <img src="images/pause.svg" alt="Pause" style="width: 40px; height: 40px;">
+        </button>
     </div>
     <div>
         <label for="key-signature">Enter Key Signature:</label>
@@ -95,10 +109,12 @@
         let dur = "q";
         let isRestMode = false; // Track if we're in rest mode
         let currentKeySignature = 'C'
+        let keysigadd = 0;
         let timeSignatureNumerator = 4; 
         let timeSignatureDenominator = 4; 
         let staveWidth = 100*timeSignatureNumerator;
         let rowSpacing = 120;
+        let totalRows = 1;
 
         // Define accidentals for sharp and flat handling
         const halfSteps = {
@@ -121,6 +137,24 @@
             b: ["c"], // Ensure b maps to c, not bb
         };
 
+        const keysignum = {
+            "C":0,
+            "G":1,
+            "D":2,
+            "A":3,
+            "E":4,
+            "B":5,
+            "F#":6,
+            "C#":7,
+            "F":1,
+            "Bb":2,
+            "Eb":3,
+            "Ab":4,
+            "Db":5,
+            "Gb":6,
+            "Cb":7,
+        };
+
         const reverseHalfSteps = Object.fromEntries(
             Object.entries(halfSteps).flatMap(([note, options]) =>
                 options.map((nextNote) => [nextNote, note])
@@ -135,26 +169,30 @@
 
         // Function to render the entire stave including multiple measures
         function renderNotes() {
-            staveWidth = 70*timeSignatureNumerator;
+            staveWidth = (70 * timeSignatureNumerator) + keysignum[currentKeySignature]*30; // Default width for measures
             context.clear();
             divNotesDisplay.innerHTML = "<strong>Notes Array:</strong> " + JSON.stringify(notes, null, 2);
             notes = makeProperMeasure(notes);
-            const measures = groupNotesIntoMeasures(notes); // Remove fixed note count
-            const totalRows = Math.ceil(measures.length / Math.floor(window.innerWidth / staveWidth));
+            const measures = groupNotesIntoMeasures(notes); // Group notes into measures
+            
 
             adjustSVGHeight(totalRows);
 
             let globalIndex = 0; // Global index across all measures
-
+            let firstMeasure = true; // Flag to identify the first measure
+            let measureWidths = []
             measures.forEach((measureNotes, measureIndex) => {
-                const position = calculateStavePosition(measureIndex);
+                staveWidth = (70 * measureNotes.length) 
+                const measureStaveWidth = firstMeasure ? staveWidth+keysigadd+ keysignum[currentKeySignature]*30 : staveWidth; // Make first measure larger
+                measureWidths.push(measureStaveWidth)
+                const position = calculateStavePosition(measureWidths);
+                const stave = new VF.Stave(position.x, position.y, measureStaveWidth);
 
-                const stave = new VF.Stave(position.x, position.y, staveWidth);
-                if (measureIndex === 0) {
+                if (firstMeasure) {
                     stave.addClef("treble").addTimeSignature(timeSignatureNumerator + "/" + timeSignatureDenominator).addKeySignature(currentKeySignature);
-                    //stave.Accidental.applyAccidentals([voice], `C`);
-
+                    firstMeasure = false; // Set the flag to false after the first measure
                 }
+
                 stave.setContext(context).draw();
 
                 // Fixed time signature: 4 beats per measure
@@ -182,14 +220,18 @@
                 });
 
                 voice.addTickables(measureTickables);
-                VF.Accidental.applyAccidentals([voice], currentKeySignature)
-                new VF.Formatter().joinVoices([voice]).format([voice], staveWidth - 50);
+                VF.Accidental.applyAccidentals([voice], currentKeySignature);
+                if (measureIndex == 0) {
+                    new VF.Formatter({ softmaxFactor: 1 }).joinVoices([voice]).format([voice], measureStaveWidth - 50);
+                } else {
+                    new VF.Formatter({ softmaxFactor: 1 }).joinVoices([voice]).format([voice], measureStaveWidth);
+                }
+                
                 voice.draw(context, stave);
             });
 
             attachClickEvents();
         }
-
         // Group notes into measures
         function groupNotesIntoMeasures(notes) {
             const measures = [];
@@ -313,16 +355,29 @@
 
 
         // Calculate stave positions
-        function calculateStavePosition(measureIndex) {
+        function calculateStavePosition(measureWidths) {
             const screenWidth = window.innerWidth;
-            const measuresPerRow = Math.floor(screenWidth / staveWidth);
-            const rowIndex = Math.floor(measureIndex / measuresPerRow);
-            const columnIndex = measureIndex % measuresPerRow;
+            let x_value = 0; // start with some padding
+            let y_value = 20; // starting y position
+            let rowIndex = 1;
 
+            // Loop through all measures to calculate accumulated width
+            for (let i = 0; i < measureWidths.length; i++) {
+                if (x_value + measureWidths[i] > screenWidth) {
+                    // Move to the next row if the measure exceeds screen width
+                    y_value += rowSpacing;
+                    x_value = 0; // Reset x to some padding
+                    rowIndex += 1;
+                }
+
+                // After checking if the measure fits, add it to the current row
+                x_value += measureWidths[i];
+            }
+
+            totalRows = rowIndex;
             return {
-                x: 10 + columnIndex * staveWidth,
-                y: 40 + rowIndex * rowSpacing,
-                rowIndex: rowIndex,
+                x: x_value - measureWidths[measureWidths.length-1],
+                y: y_value,
             };
         }
 
@@ -363,9 +418,18 @@
                 moveNoteHalfStep(selectedNoteIndex, "up");
             } else if (event.key === "ArrowDown") {
                 moveNoteHalfStep(selectedNoteIndex, "down");
-            } else if (event.key === "Enter") {
-                selectedNoteIndex = (selectedNoteIndex + 1) % notes.length;
-                renderNotes();
+            } else if (event.key === "ArrowRight") {
+                // Move forward in the notes array
+                if (selectedNoteIndex !== null) {
+                    selectedNoteIndex = (selectedNoteIndex + 1) % notes.length;
+                    renderNotes();
+                }
+            } else if (event.key === "ArrowLeft") {
+                // Move backward in the notes array
+                if (selectedNoteIndex !== null) {
+                    selectedNoteIndex = (selectedNoteIndex - 1 + notes.length) % notes.length;
+                    renderNotes();
+                }
             } else if (event.key === "a") {
                 if (selectedNoteIndex === null) {
                     // If no note is selected, add the note at the end
@@ -430,10 +494,14 @@
             });
         });
         document.getElementById("rest-button").addEventListener("click", () => {
-            if (isRestMode == false) {
-                isRestMode = true; // Enable rest mode
+            isRestMode = !isRestMode; // Toggle rest mode state
+            const restButton = document.getElementById("rest-button");
+
+            // Toggle the active class to change the button's appearance
+            if (isRestMode) {
+                restButton.classList.add("active"); // Add active class when rest mode is on
             } else {
-                isRestMode = false;
+                restButton.classList.remove("active"); // Remove active class when rest mode is off
             }
         });
 
