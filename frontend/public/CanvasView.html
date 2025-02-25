@@ -6,6 +6,37 @@
     <title>Interactive Staff Notes</title>
     <script src="https://unpkg.com/vexflow/releases/vexflow-min.js"></script>
     <style>
+        .fixed-toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: white; /* Keep it visible */
+            border-bottom: 1px solid #ccc; /* Lighter boundary */
+            padding: 5px 10px; /* Reduce padding */
+            display: flex;
+            gap: 5px; /* Reduce spacing between buttons */
+            align-items: center;
+            z-index: 1000;
+            height: 50px; /* Reduce height */
+        }
+
+        .fixed-toolbar button {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+        }
+
+        .fixed-toolbar img {
+            width: 30px; /* Reduce icon size */
+            height: 30px;
+        }
+
+        body {
+            padding-top: 60px; /* Push content down so it's not hidden behind the toolbar */
+        }
+
         .selected-note {
             fill: red !important;
             stroke: red !important;
@@ -53,28 +84,30 @@
     <button onclick="window.location.href = '/'">Back</button>
 
     <div>
-        <div id="note-selection">
-            <button id="note-button">
-                <img src="images/quarter.png" alt="Quarter Note" id="note-icon" style="width: 40px; height: 40px;">
-            </button>
-            <div id="note-options" class="hidden">
-                <button class="note-option" data-value="w"><img src="images/whole.svg" alt="Whole Note"></button>
-                <button class="note-option" data-value="hd"><img src="images/dotted.svg" alt="Dotted Half Note"></button>
-                <button class="note-option" data-value="h"><img src="images/half.png" alt="Half Note"></button>
-                <button class="note-option" data-value="q"><img src="images/quarter.png" alt="Quarter Note"></button>
-                <button class="note-option" data-value="8"><img src="images/eighth.png" alt="Eighth Note"></button>
-                <button class="note-option" data-value="16"><img src="images/sixteenth.png" alt="Sixteenth Note"></button>
+        <div class="fixed-toolbar">
+            <div id="note-selection">
+                <button id="note-button">
+                    <img src="images/quarter.png" alt="Quarter Note" id="note-icon" style="width: 40px; height: 40px;">
+                </button>
+                <div id="note-options" class="hidden">
+                    <button class="note-option" data-value="w"><img src="images/whole.svg" alt="Whole Note"></button>
+                    <button class="note-option" data-value="hd"><img src="images/dotted.svg" alt="Dotted Half Note"></button>
+                    <button class="note-option" data-value="h"><img src="images/half.png" alt="Half Note"></button>
+                    <button class="note-option" data-value="q"><img src="images/quarter.png" alt="Quarter Note"></button>
+                    <button class="note-option" data-value="8"><img src="images/eighth.png" alt="Eighth Note"></button>
+                    <button class="note-option" data-value="16"><img src="images/sixteenth.png" alt="Sixteenth Note"></button>
+                </div>
             </div>
+            <button id="rest-button">
+                <img src="images/rest.png" alt="Rest" style="width: 40px; height: 40px;">
+            </button>
+            <button id="play-button">
+                <img src="images/play.svg" alt="Play" style="width: 40px; height: 40px;">
+            </button>
+            <button id="pause-button">
+                <img src="images/pause.svg" alt="Pause" style="width: 40px; height: 40px;">
+            </button>
         </div>
-        <button id="rest-button">
-            <img src="images/rest.png" alt="Rest" style="width: 40px; height: 40px;">
-        </button>
-        <button id="play-button">
-            <img src="images/play.svg" alt="Play" style="width: 40px; height: 40px;">
-        </button>
-        <button id="pause-button">
-            <img src="images/pause.svg" alt="Pause" style="width: 40px; height: 40px;">
-        </button>
     </div>
     <div>
         <label for="key-signature">Enter Key Signature:</label>
@@ -181,9 +214,14 @@
             let globalIndex = 0; // Global index across all measures
             let firstMeasure = true; // Flag to identify the first measure
             let measureWidths = []
-            measures.forEach((measureNotes, measureIndex) => {
+            for (let measureIndex = 0; measureIndex < measures.length; measureIndex++) {
+                const measureNotes = measures[measureIndex];
                 staveWidth = (70 * measureNotes.length) 
-                const measureStaveWidth = firstMeasure ? staveWidth+keysigadd+ keysignum[currentKeySignature]*30 : staveWidth; // Make first measure larger
+                const measureStaveWidth = firstMeasure ? staveWidth+keysigadd+ keysignum[currentKeySignature]*30 : staveWidth; // Make first measure larger\
+                if (window.innerWidth < measureStaveWidth) {
+                    alert("Sorry, your screen is too small for the measure.");
+                    break;
+                }
                 measureWidths.push(measureStaveWidth)
                 const position = calculateStavePosition(measureWidths);
                 const stave = new VF.Stave(position.x, position.y, measureStaveWidth);
@@ -228,7 +266,7 @@
                 }
                 
                 voice.draw(context, stave);
-            });
+            };
 
             attachClickEvents();
         }
