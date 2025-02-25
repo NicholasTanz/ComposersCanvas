@@ -38,7 +38,7 @@ function getDuration(timeString, duration, tempo) {
     }
 
     // Currently, time signature is 4 to a measure.
-    const total = measures * 4 + beats / 4 + sixteenths / 16;
+    const total = measures * 4 + beats + sixteenths / 4;
     //console.log(total);
     // Calculate the total time in seconds
     const seconds = total * 60 / tempo;
@@ -91,9 +91,46 @@ const sequence = [
     [0, "C4", "4n"],      // Play C4 for a quarter note at time 0
     ["0:1", "E4", "8n"],  // Play E4 for an eighth note at time 0:1
     ["0:2", "G4", "16n"], // Play G4 for a sixteenth note at time 0:2
-    ["0:3", "B4", "2n"],   // Play B4 for a half note at time 0:3
-    ["1:3", "C3", "1n"]
+    ["0:3", "B4", "2n"],  // Play B4 for a half note at time 0:3
+    ["1:3", "C3", "1n"]   // Play C3 for a whole note at time 1:3
 ];
+
+// CURRENTLY, TIME SIGNATURE IS 4/4. This is gonna be a pain to change later.
+function stopTime (sequence){
+    let lastNote = sequence[sequence.length - 1]; // We need 0 and 2.
+
+    const parts = lastNote[0].split(':');
+    const duration = lastNote[2];
+
+    const sixteenthsPerBeat = 4;
+    const beatsPerMeasure = 4;
+
+    // Parse measures, beats, and sixteenths
+    var measures = parseInt(parts[0]);
+    var beats = (parts.length >= 2) ? parseInt(parts[1]) : 0;
+    var sixteenths = parts.length === 3 ? parseInt(parts[2]) : 0;
+
+    let durationInSixteenths = {
+        "1n": 4 * beatsPerMeasure,
+        "2n": 2 * beatsPerMeasure,
+        "4n": 4,
+        "8n": 2,
+        "16n": 1
+    }[duration];
+    // 1:3:0 -> 1:3:19 -> 1:7:3
+    sixteenths += durationInSixteenths;
+    while (sixteenths >= sixteenthsPerBeat) {
+        sixteenths -= sixteenthsPerBeat;
+        beats += 1;
+    }
+    while (beats >= beatsPerMeasure) {
+        beats -= beatsPerMeasure;
+        measures += 1;
+    }
+
+    const timeToStop = `${measures}:${beats}:${sixteenths}`;
+    return timeToStop;
+}
 
 // Create a button to trigger the sequence
 // const playButton = document.createElement('button');
@@ -142,9 +179,11 @@ playButton.onclick = async () => {
     part.loop = 1;
     transport.start();
 
-    const lastNoteTime = sequence[sequence.length - 1][0]; //+ sequence[sequence.length - 1][2];
-    transport.scheduleOnce((lastNoteTime) => {
-        transport.stop(lastNoteTime);
+    const lastNoteTime = stopTime(sequence);
+    transport.scheduleOnce((lnt) => {
+        console.log(lnt)
+        transport.stop(lnt);
+        console.log(lnt);
         console.log("Transport stopped after last note.");
     }, lastNoteTime);
 };
@@ -220,3 +259,114 @@ const autoUpdate = setInterval(() => {
 document.body.appendChild(playbackTime);
 document.body.appendChild(playbackSlider);
 document.body.appendChild(playbackDuration);
+
+function displayArray(array) {
+    const table = document.createElement('table');
+
+    const headers = ['Time', 'Note', 'Duration'];
+        const headerRow = document.createElement('tr');
+        headers.forEach(header => {
+            const th = document.createElement('th');
+            th.textContent = header;
+            headerRow.appendChild(th);
+        });
+        table.appendChild(headerRow);
+
+    array.forEach((rowArray, index) => {
+        const row = document.createElement('tr');
+        rowArray.forEach(cellData => {
+            const cell = document.createElement('td'); //index === 0 ? 'th' : 'td'
+            cell.textContent = cellData;
+            row.appendChild(cell);
+        });
+        table.appendChild(row);
+    });
+    document.body.appendChild(table);
+}
+
+displayArray(sequence);
+
+const vexSequence = [
+    {key: "c/4", duration: "q"},  // Play C4 for a quarter note at time 0
+    {key: "e/4", duration: "8"},  // Play E4 for an eighth note at time 0:1
+    {key: "g/4", duration: "16"}, // Play G4 for a sixteenth note at time 0:2
+    {key: "b/4", duration: "h"}, // Play B4 for a half note at time 0:3
+    {key: "c/3", duration: "w"}
+];
+
+// Convert sequence into VexFlow
+// function toneToVex(sequence) {
+// }
+
+// function vexToTone(vexSequence, timeSign = "4/4") { // Default is 4/4
+//     const durations = {
+//         "w": "1n",
+//         "h": "2n",
+//         "q": "4n",
+//         "8": "8n",
+//         "16": "16n",
+//     }
+
+
+// }
+
+function convertVtoT(vArray, timeSignature = "4/4") { // Add rests and shi...
+    const noteDurations = {
+        "w": "1n",
+        "h": "2n",
+        "q": "4n",
+        "8": "8n",
+        "16": "16n"
+    };
+/*
+    const restDurations = {
+        "wr": "1n",
+        "hr": "2n",
+        "qr": "4n",
+        "8r": "8n",
+        "16r": "16n"
+    };
+*/
+
+    let tArray = [];
+    let currentTime = [0, 0, 0]; // measures:beats:sixteenths
+
+    vArray.forEach(note => {
+        // Convert key
+        let key = note.key.replace("/", "").toUpperCase();
+
+        // Convert duration
+        let duration = noteDurations[note.duration];
+
+        // Add note to tArray
+        tArray.push([`${currentTime[0]}:${currentTime[1]}:${currentTime[2]}`, key, duration]);
+
+        // Update time
+        let beatsPerMeasure = parseInt(timeSignature.split("/")[0]);
+        let sixteenthsPerBeat = 4; // 4 sixteenths in a beat
+
+        let durationInSixteenths = {
+            "1n": 4 * beatsPerMeasure,
+            "2n": 2 * beatsPerMeasure,
+            "4n": 4,
+            "8n": 2,
+            "16n": 1
+        }[duration];
+
+        currentTime[2] += durationInSixteenths;
+        while (currentTime[2] >= sixteenthsPerBeat) {
+            currentTime[2] -= sixteenthsPerBeat;
+            currentTime[1] += 1;
+        }
+        while (currentTime[1] >= beatsPerMeasure) {
+            currentTime[1] -= beatsPerMeasure;
+            currentTime[0] += 1;
+        }
+    });
+    console.log(tArray);
+    return tArray;
+}
+
+const vexToToneArr = convertVtoT(vexSequence, "4/4");
+
+displayArray(vexToToneArr);
