@@ -27,6 +27,8 @@ function getDuration(timeString, duration, tempo) {
     // Shouldn't matter, as we are just calculating total time.
     if (duration === "1n") {
         beats += 4;
+    } else if (duration === "2n.") {
+        beats += 3;
     } else if (duration === "2n") {
         beats += 2;
     } else if (duration === "4n") {
