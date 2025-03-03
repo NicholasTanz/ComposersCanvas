@@ -13,6 +13,15 @@ RUN npm ci
 # Copy the rest of the files and build the Vue.js app
 COPY . .
 
+# Set the environment variable VITE_BACKEND_URL for build time
+# we have to set the backend url at build time, as the frontend is static.
+# and we cannot change the environment variables at runtime. 
+ARG VITE_BACKEND_URL
+ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}
+
+# Inject it into a .env file
+RUN echo "VITE_BACKEND_URL=${VITE_BACKEND_URL}" > .env
+
 # Run the build command to create production-ready assets
 RUN npm run build
 
