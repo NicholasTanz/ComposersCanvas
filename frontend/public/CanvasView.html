@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Staff Notes</title>
     <script src="https://unpkg.com/vexflow/releases/vexflow-min.js"></script>
+    <script src="http://unpkg.com/tone"></script>
     <style>
         html, body {
             /*margin: 0; /* Removes default margin */
@@ -142,6 +143,9 @@
         let notes = [
             { key: "g/4", duration: "q" },
         ];
+        
+        // I'm so sorry
+        
 
         let selectedNoteIndex = null; // Track the selected note index
         let dur = "q";
@@ -272,7 +276,7 @@
                 
                 voice.draw(context, stave);
             };
-
+            window.vexNotes = notes;
             attachClickEvents();
         }
         // Group notes into measures
@@ -590,5 +594,6 @@
         });
         renderNotes();
     </script>
+    <script src="ToneJS.js"></script>
 </body>
 </html>
