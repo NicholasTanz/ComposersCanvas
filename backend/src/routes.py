@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, make_response
-from .models import checkUserExists, addUser, removeUser
+from .models import checkUserExists, addUser, removeUser, storeComposition, getUserId_FromUsername, getCompositions_byUserId
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta, timezone
 import jwt
@@ -127,19 +127,41 @@ def register_routes(app : Flask):
     # this route will be used to accept a composition and store it in the database.
     @app.route('/store_composition', methods=['POST'])
     def store_composition():
-        # this will accept a json web token to make sure the user is authenticated. 
-        pass
+        # this assumes that the user is authenticated and the json web token validation
+        # has already been done (/check-auth route).
+
+        # get the data from the request
+        data = request.get_json()
+        composition = data.get('composition') # we assume the composition is stored as an array of notes.
+
+        # simple validation
+        if not composition:
+            return jsonify({"message": "Composition is required"}), 400
+        
+        # store the composition in the database - we also the need the user_id of the user who created the composition.
+        token = request.cookies.get('jwt')
+        decoded = jwt.decode(token, str(os.getenv("SECRET_KEY")), algorithms=["HS256"])
+        userId = getUserId_FromUsername(decoded["username"])
+
+        response = storeComposition(composition, userId)
+
+        if response[1] != 200:
+            return response
+        
+        return jsonify({"message": "Composition stored successfully"}), 200
 
     # this route will be used to accept all available compositions and return them to the user.
     @app.route('/get_compositions', methods=['GET'])
     def get_compositions():
-        # this will accept a json web token to make sure the user is authenticated.
-        pass
+        # this assumes that the user is authenticated and the json web token validation
+        # has already been done (/check-auth route).
 
+        # get all compositions from the database
+        token = request.cookies.get('jwt')
+        decoded = jwt.decode(token, str(os.getenv("SECRET_KEY")), algorithms=["HS256"])
+        userId = getUserId_FromUsername(decoded["username"])
 
-def verify_token(token):
-    try:
-        jwt.decode(token, str(os.getenv("SECRET_KEY")), algorithms=["HS256"])
-        return jsonify({"message": "Valid token"}), 200
-    except: # noqa: E722 
-        return jsonify({"message": "Invalid token"}), 401
+        compositions = getCompositions_byUserId(userId)
+
+        # return the compositions to the user
+        return jsonify([composition.composition for composition in compositions]), 200
