@@ -83,3 +83,44 @@ def removeUser(username):
     except Exception as e:
         db.session.rollback()
         return jsonify({"message": str(e)}), 500
+
+
+def storeComposition(composition, userId):
+    '''
+    
+    This function will store a composition in the database.
+
+    Parameters:
+    composition (str): The composition to be stored.
+
+    Returns:
+    response (json): A json response indicating the status of the operation.
+    
+    '''
+    try:
+        new_composition = Composition(composition=composition, user_id=userId)
+        db.session.add(new_composition)
+        db.session.commit()
+        
+        return jsonify({"message": "Composition stored successfully"}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": str(e)}), 500
+
+
+def getUserId_FromUsername(username):
+    '''
+    
+    This function will get the user id from the username.
+
+    Parameters:
+    username (str): The username of the user.
+
+    Returns:
+    user_id (int): The user id of the user.
+    
+    '''
+
+    user = User.query.filter_by(username=username).first()
+    return user.id
