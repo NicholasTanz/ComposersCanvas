@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, make_response
-from .models import checkUserExists, addUser, removeUser, storeComposition, getUserId_FromUsername
+from .models import checkUserExists, addUser, removeUser, storeComposition, getUserId_FromUsername, getCompositions_byUserId
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta, timezone
 import jwt
@@ -153,5 +153,15 @@ def register_routes(app : Flask):
     # this route will be used to accept all available compositions and return them to the user.
     @app.route('/get_compositions', methods=['GET'])
     def get_compositions():
-        # this will accept a json web token to make sure the user is authenticated.
-        pass
+        # this assumes that the user is authenticated and the json web token validation
+        # has already been done (/check-auth route).
+
+        # get all compositions from the database
+        token = request.cookies.get('jwt')
+        decoded = jwt.decode(token, str(os.getenv("SECRET_KEY")), algorithms=["HS256"])
+        userId = getUserId_FromUsername(decoded["username"])
+
+        compositions = getCompositions_byUserId(userId)
+
+        # return the compositions to the user
+        return jsonify([composition.composition for composition in compositions]), 200

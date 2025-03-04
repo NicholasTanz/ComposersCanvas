@@ -7,6 +7,7 @@ const authStore = useAuthStore();
 const inputText = ref(""); // Stores user input
 const apiResponse = ref(null); // Stores API response
 const errorMessage = ref(null); // Stores error messages
+const savedCompositions = ref([]); // Stores fetched compositions
 
 onMounted(() => {
   authStore.checkAuthStatus();
@@ -27,6 +28,17 @@ async function sendTextToBackend() {
     errorMessage.value = "Failed to send data to the API. Please try again.";
   }
 }
+
+async function fetchSavedCompositions() {
+  try {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    const response = await axios.get(`${backendUrl}/get_compositions`, { withCredentials: true });
+    savedCompositions.value = response.data;
+  } catch (error) {
+    console.error("Error fetching compositions:", error);
+    errorMessage.value = "Failed to fetch saved compositions.";
+  }
+}
 </script>
 
 <template>
@@ -36,7 +48,12 @@ async function sendTextToBackend() {
     <p v-if="authStore.isAuthenticated">
       You are logged in! Here you will see your saved compositions.
       <button @click="authStore.logout">Logout</button>
-
+    </p>
+    
+    <p v-else>
+      Please log in to view your saved compositions.
+    </p>
+    
     <!-- API Test Section -->
     <section v-if="authStore.isAuthenticated" class="api-test text-center mt-12">
       <h2 class="text-2xl font-bold">Test API Endpoint</h2>
@@ -53,12 +70,22 @@ async function sendTextToBackend() {
         <strong>Error:</strong> {{ errorMessage }}
       </div>
     </section>
-
-    </p>
     
-    <p v-else>
-      Please log in to view your saved compositions.
-    </p>
+    <!-- Saved Compositions Section -->
+    <section v-if="authStore.isAuthenticated" class="saved-compositions mt-8">
+      <h2 class="text-2xl font-bold">Your Saved Compositions</h2>
+      <button @click="fetchSavedCompositions" class="mt-4 bg-green-500 text-white font-bold py-2 px-4 rounded hover:bg-green-600">
+        View Saved Compositions
+      </button>
+      
+      <ul v-if="savedCompositions.length" class="mt-4">
+        <li v-for="(composition, index) in savedCompositions" :key="index" class="p-2 border rounded mt-2">
+          {{ composition }}
+        </li>
+      </ul>
+      
+      <p v-else class="mt-4">No saved compositions found.</p>
+    </section>
   </div>
 </template>
 

@@ -124,3 +124,19 @@ def getUserId_FromUsername(username):
 
     user = User.query.filter_by(username=username).first()
     return user.id
+
+def getCompositions_byUserId(userId):
+    '''
+
+    This function will get all compositions by a user id.
+
+    Parameters:
+    userId (int): The user id of the user.
+
+    Returns:
+    compositions (list): A list of compositions by the user.
+    
+    '''
+
+    compositions = Composition.query.filter_by(user_id=userId).all()
+    return compositions
