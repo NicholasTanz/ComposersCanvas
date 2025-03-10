@@ -21,6 +21,7 @@ ENV VITE_BACKEND_URL=${VITE_BACKEND_URL}
 
 # Inject it into a .env file
 RUN echo "VITE_BACKEND_URL=${VITE_BACKEND_URL}" > .env
+RUN echo "PORT=8080" >> .env
 
 # Run the build command to create production-ready assets
 RUN npm run build
@@ -31,4 +32,4 @@ RUN npm install -g serve
 EXPOSE 8080
 
 # Command to start the production server
-CMD ["npm", "run", "prod"]
+CMD ["node", "server.js"]
