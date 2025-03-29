@@ -5,7 +5,7 @@
         <RouterLink to="/createAccount" class="nav-link">Create an Account</RouterLink>
         <RouterLink to="/login" class="nav-link">Login</RouterLink>
         <a class="nav-link" href="/CanvasView.html">Create Composition</a>
-        <RouterLink to="/saved" class="nav-link">View Saved Compositions</RouterLink>
+        <RouterLink to="/profile" class="nav-link">User Profile</RouterLink>
       </div>
     </nav>
   </template>

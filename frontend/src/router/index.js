@@ -19,14 +19,9 @@ const router = createRouter({
       component: () => import('../views/loginAccountView.vue'),
     },
     {
-      path: '/create',
-      name: 'create',
-      component: () => import('../views/createComposition.vue'),
-    },
-    {
-      path: '/saved', 
-      name: 'saved',
-      component: () => import('../views/viewSavedCompositions.vue'),
+      path: '/profile', 
+      name: 'profile',
+      component: () => import('../views/userProfile.vue'),
     }
   ],
 })

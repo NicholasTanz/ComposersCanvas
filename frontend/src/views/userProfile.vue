@@ -43,7 +43,7 @@ async function fetchSavedCompositions() {
 
 <template>
   <div>
-    <h1>View Compositions</h1>
+    <h1>User Profile</h1>
     
     <p v-if="authStore.isAuthenticated">
       You are logged in! Here you will see your saved compositions.
@@ -51,7 +51,7 @@ async function fetchSavedCompositions() {
     </p>
     
     <p v-else>
-      Please log in to view your saved compositions.
+      Please log in to view account details.
     </p>
     
     <!-- API Test Section -->

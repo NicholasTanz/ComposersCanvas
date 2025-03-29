@@ -1,4 +1,6 @@
 <template>
+  <!-- html logic -->
+
     <div class="container">
       <Navbar />
       
@@ -7,7 +9,7 @@
         <div class="hero-text">
           <h1>Compose Your Music</h1>
           <p>A web-based tool that allows you to create, edit, and save musical compositions on a virtual canvas using VexFlow.</p>
-          <a href="#" class="btn-primary">Start Composing</a>
+          <a href="/CanvasView.html" class="btn-primary">Start Composing</a>
         </div>
       </div>
 
@@ -17,9 +19,6 @@
         <p class="text-md max-w-xl mt-2 text-gray-700 dark:text-gray-300 mx-auto">
           Add notes to the canvas, fine-tune compositions, and bring them to life with real-time playback.
         </p>
-        <div class="mt-6">
-          <img src="https://source.unsplash.com/500x250/?piano,sheet-music" alt="Sheet Music" class="rounded-lg shadow-lg w-72 transform hover:scale-105 transition">
-        </div>
 
         <div class="mt-6">
           <button @click="playbackExample" class="bg-yellow-300 text-black font-bold py-3 px-6 rounded-lg shadow hover:bg-yellow-400 transform hover:scale-105 transition">
@@ -37,6 +36,7 @@
 </template>
 
 <script>
+// JS logic. 
 import Navbar from '../components/Navbar.vue';
 
 export default {
@@ -47,9 +47,9 @@ export default {
 };
 </script>
 
-<!-- Include your styles as needed -->
-
 <style scoped>
+/* CSS logic. */
+
 /* General Styles */
 .container {
   min-height: 100vh;

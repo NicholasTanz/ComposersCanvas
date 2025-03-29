@@ -1,4 +1,6 @@
 <script setup>
+// JS logic. 
+
 import { ref } from 'vue';
 import axios from 'axios';
 import Navbar from '../components/Navbar.vue';
