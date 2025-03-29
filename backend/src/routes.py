@@ -30,6 +30,9 @@ def register_routes(app : Flask):
         if existing_user:
             return jsonify({"message": "Username or email already taken"}), 400
 
+        if len(password) < 8 or not any(char.isupper() for char in password) or not any(char.islower() for char in password) or not any(char.isdigit() for char in password):
+            return jsonify({"message": "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number"}), 400
+
         # hash password. 
         hashed_password = generate_password_hash(password)
 
@@ -123,7 +126,6 @@ def register_routes(app : Flask):
         response = removeUser(username)
         return response
 
-    # TODO: Add the following routes to the Flask application.
     # this route will be used to accept a composition and store it in the database.
     @app.route('/store_composition', methods=['POST'])
     def store_composition():
