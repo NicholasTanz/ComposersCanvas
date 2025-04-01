@@ -40,12 +40,12 @@ class TestStoreComposition:
         assert response.status_code == 200
 
     def test_store_composition(self):
-        payload = {
+        _ = {
             "composition": {
                 "data": "example data",
             }
         }
 
-        headers = {
+        _ = {
             "Content-Type": "application/json"
         }
