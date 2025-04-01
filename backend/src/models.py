@@ -17,7 +17,6 @@ class Composition(db.Model):
     composition = db.Column(db.String(120), nullable=False)
 
 # Database Interactions. 
-
 def addUser(username, hashed_password, email):
     '''
     
