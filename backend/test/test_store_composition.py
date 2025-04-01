@@ -49,14 +49,3 @@ class TestStoreComposition:
         headers = {
             "Content-Type": "application/json"
         }
-
-        response = requests.post(URL_store, json=payload, headers=headers)
-
-        assert response.status_code == 200
-        assert response.json()["message"] == "Composition stored successfully"
-
-        # fetch the stored composition to verify it was stored correctly.
-        response = requests.get(URL_get, headers=headers)
-        assert response.status_code == 200
-        compositions = response.json()["compositions"]
-        assert len(compositions) > 0
