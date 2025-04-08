@@ -30,6 +30,9 @@ const handleSubmit = async (event) => {
     });
 
     await authStore.checkAuthStatus(); // Check if user is authenticated
+    username.value = "";
+    password.value = "";
+    email.value = "";
     response.value = res.data;
     loginStatus.value = "Login Successful!";
   } catch (error) {

@@ -36,8 +36,27 @@ def register_routes(app : Flask):
         # hash password. 
         hashed_password = generate_password_hash(password)
 
+        # Generate JWT token
+        token = jwt.encode(
+             {"username": username, "exp": datetime.now(timezone.utc) + timedelta(hours=1)},
+            str(os.getenv("SECRET_KEY")),
+            algorithm="HS256"
+            )
+        
+        response = make_response(jsonify({"message": "User created successfully"}), 200)
+        response.set_cookie(
+            "jwt",
+            token,
+            httponly=True,
+            secure=os.getenv("CORS_ORIGINS")[:5] == "https", 
+            samesite="None" if os.getenv("CORS_ORIGINS")[:5] == "https" else "Lax",
+        )
+
         # Add the new user to the database
-        response = addUser(username, hashed_password, email)
+        db_response = addUser(username, hashed_password, email)
+        if db_response[1] != 200:
+            return db_response
+
         return response
 
     # this route will be used to accept a username and password and authenticate the user.
