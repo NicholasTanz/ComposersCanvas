@@ -10,6 +10,8 @@ const username = ref('');
 const password = ref('');
 const email = ref('');
 const response = ref(null);
+import { useAuthStore } from '@/stores/auth'; // Import the Pinia store
+const authStore = useAuthStore(); // Initialize store
 
 const handleSubmit = async (event) => {
 
@@ -22,9 +24,22 @@ const handleSubmit = async (event) => {
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json"
-      }
+    }
+  });
+
+    const login_res = await axios.post(backendUrl+"/login", {
+      username: username.value,
+      password: password.value,
+      email: email.value
+    }, {
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json"
+      },
+      withCredentials: true,
     });
 
+    await authStore.checkAuthStatus(); // Check if user is authenticated
     response.value = res.data;
   } catch (error) {
     console.error("Error:", error.response?.data || error.message);
