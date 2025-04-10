@@ -258,7 +258,7 @@
     </style>
 </head>
 <body>
-    <a href="window.location.href = '/'" class="floating-back">←</a>
+    <a href="/" class="floating-back">←</a>
     <div>
         <div class="fixed-toolbar">
             <div id="note-selection">
@@ -837,8 +837,8 @@
                 if (requiredWidth > screenWidth) {
                     alert("Sorry, your screen is too small for this time signature.");
                 } 
-                else if (denom==0 || num == 0){
-                    alert("Sorry, 0 is not valid in a time signature.");
+                else if (denom <=0 || num <= 0){
+                    alert("Sorry, numbers less than 1 are not valid in a time signature.");
                 }
                 else {
                     // Otherwise, update the time signature
