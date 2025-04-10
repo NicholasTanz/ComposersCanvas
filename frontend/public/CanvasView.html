@@ -739,7 +739,7 @@
                         notes[selectedNoteIndex] = { key: "g/4", duration: dur };
                     } else {
                         // Insert the new note immediately after the selected note
-                        notes.splice(selectedNoteIndex + 1, 0, isRestMode ? { key: "b/4", duration: dur + "r" } : { key: "g/4", duration: dur });
+                        notes.splice(selectedNoteIndex + 1, 0, isRestMode ? { key: "b/4", duration: dur + "r" } : { key: notes[selectedNoteIndex].key, duration: dur });
                         selectedNoteIndex += 1; // Update the selected note index to the newly added note
                     }
                 }
