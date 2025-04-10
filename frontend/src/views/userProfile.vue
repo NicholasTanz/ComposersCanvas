@@ -46,7 +46,7 @@ async function fetchSavedCompositions() {
     <h1>User Profile</h1>
     
     <p v-if="authStore.isAuthenticated">
-      You are logged in! Here you will see your saved compositions.
+      You are logged in!
       <button @click="authStore.logout">Logout</button>
     </p>
     
@@ -54,41 +54,42 @@ async function fetchSavedCompositions() {
       Please log in to view account details.
     </p>
     
-    <!-- API Test Section -->
-    <section v-if="authStore.isAuthenticated" class="api-test text-center mt-12">
-      <h2 class="text-2xl font-bold">Test API Endpoint</h2>
-      <input v-model="inputText" type="text" placeholder="Enter some text" class="mt-4 p-2 border rounded" />
-      <button @click="sendTextToBackend" class="ml-2 bg-blue-500 text-white font-bold py-2 px-4 rounded hover:bg-blue-600">
-        Send to API
+    <!-- testing save endpoint -->
+    <section v-if="authStore.isAuthenticated">
+      <h2>Test API Endpoint</h2>
+      <input v-model="inputText" type="text" placeholder="Enter some text"/>
+      <button @click="sendTextToBackend">
+        Send to Backend
       </button>
       
-      <div v-if="apiResponse" class="mt-4 p-2 border rounded bg-green-100 text-green-700">
+      <div v-if="apiResponse">
         <strong>Response:</strong> {{ apiResponse }}
       </div>
       
-      <div v-if="errorMessage" class="mt-4 p-2 border rounded bg-red-100 text-red-700">
+      <div v-if="errorMessage">
         <strong>Error:</strong> {{ errorMessage }}
       </div>
     </section>
     
-    <!-- Saved Compositions Section -->
-    <section v-if="authStore.isAuthenticated" class="saved-compositions mt-8">
-      <h2 class="text-2xl font-bold">Your Saved Compositions</h2>
-      <button @click="fetchSavedCompositions" class="mt-4 bg-green-500 text-white font-bold py-2 px-4 rounded hover:bg-green-600">
+    <!-- testing fetch endpoint -->
+    <section v-if="authStore.isAuthenticated">
+      <h2>Your Saved Compositions</h2>
+      <button @click="fetchSavedCompositions">
         View Saved Compositions
       </button>
       
-      <ul v-if="savedCompositions.length" class="mt-4">
-        <li v-for="(composition, index) in savedCompositions" :key="index" class="p-2 border rounded mt-2">
+      <ul v-if="savedCompositions.length">
+        <li v-for="(composition, index) in savedCompositions" :key="index">
           {{ composition }}
         </li>
       </ul>
       
-      <p v-else class="mt-4">No saved compositions found.</p>
+      <p v-else>No saved compositions found.</p>
     </section>
   </div>
 </template>
 
 <style scoped>
-/* Add styles here if needed */
+/* add css styles here */
+
 </style>

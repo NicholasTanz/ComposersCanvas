@@ -4,3 +4,4 @@
 /.pytest_cache
 /__pycache__
 /venv
+backend_gcp_secrets.txt
