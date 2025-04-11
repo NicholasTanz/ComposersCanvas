@@ -54,23 +54,34 @@ const handleSubmit = async (event) => {
 </template>
 
 <style scoped>
-/* General Styles */
 .container {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  background: linear-gradient(to bottom right, #00ffccd5, #0342e0);
+  background: linear-gradient(to bottom right, #d9e9f4, #98c8e0);
   color: #333;
-  padding: 20px;
-  position: relative;
-  transition: background 0.5s ease, color 0.5s ease;
+  padding: 5vw 3vw;
+  font-family: "Comic Sans MS", cursive, sans-serif;
+  box-sizing: border-box;
+  width: 100%;
 }
 
 h2 {
   font-size: 2rem;
-  color: #ffcc00;
+  color:rgb(38, 39, 41);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+/* Form Styling */
+form {
+  width: 100%;
+  max-width: 500px;
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
 
 /* Input Fields */
@@ -78,36 +89,37 @@ h2 {
   display: block;
   width: 100%;
   padding: 12px;
-  margin-top: 8px;
-  margin-bottom: 18px;
   border-radius: 8px;
   border: 1px solid #ccc;
   background: #f9f9f9;
+  margin-top: 6px;
+  margin-bottom: 20px;
   transition: all 0.3s ease-in-out;
+  font-size: 1rem;
 }
 
 .input-field:focus {
   outline: none;
-  border-color: #ffcc00;
-  background: #fffbe6; /* Light yellow focus background */
+  border-color: #3b82f6;
+  background: #eef6ff;
 }
 
-/* Submit Button */
+/* Button */
 .btn-primary {
-  width: 100%;
-  padding: 14px;
-  background-color: #ffcc00;
-  color: black;
-  font-weight: bold;
+  display: inline-block;
+  background: #1d4ed8;
+  color: white;
+  padding: 1rem 2rem;
   border-radius: 8px;
-  border: none;
-  cursor: pointer;
-  transition: background-color 0.3s, transform 0.3s ease;
+  font-weight: bold;
+  text-align: center;
+  transition: background 0.3s, transform 0.3s;
+  font-size: 1rem;
+  width: 100%;
 }
 
 .btn-primary:hover {
-  background-color: #ffdb4d;
+  background: #2563eb;
   transform: scale(1.05);
 }
-
 </style>

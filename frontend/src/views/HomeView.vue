@@ -1,39 +1,36 @@
 <template>
-    <div class="container">
-      <Navbar />
-      
-      <!-- Hero Section -->
-      <div class="hero">
-        <div class="hero-text">
-          <h1>Compose Your Music</h1>
-          <p>A web-based tool that allows you to create, edit, and save musical compositions on a virtual canvas using VexFlow.</p>
-          <a href="#" class="btn-primary">Start Composing</a>
-        </div>
-      </div>
+  <div class="container">
+    <Navbar />
 
-      <!-- Visualize Section -->
-      <section class="visualize text-center mt-12">
-        <h2 class="text-3xl font-bold text-yellow-300">Visualize Your Music</h2>
-        <p class="text-md max-w-xl mt-2 text-gray-700 dark:text-gray-300 mx-auto">
+    <!-- Combined Hero + Visualize Section -->
+    <div class="main-section">
+      <div class="left-content">
+        <h1 class="text-4xl font-bold mb-4">Compose Your Music</h1>
+        <p class="text-lg mb-6">
+          A web-based tool that allows you to create, edit, and save musical compositions on a virtual canvas using VexFlow.
+        </p>
+        <a href="#" class="btn-primary mb-10">Start Composing</a>
+
+        <h2 class="text-2xl font-bold text-blue-500 mb-2">Visualize Your Music</h2>
+        <p class="text-md text-gray-700">
           Add notes to the canvas, fine-tune compositions, and bring them to life with real-time playback.
         </p>
-        <div class="mt-6">
-          <img src="https://source.unsplash.com/500x250/?piano,sheet-music" alt="Sheet Music" class="rounded-lg shadow-lg w-72 transform hover:scale-105 transition">
-        </div>
+      </div>
 
-        <div class="mt-6">
-          <button @click="playbackExample" class="bg-yellow-300 text-black font-bold py-3 px-6 rounded-lg shadow hover:bg-yellow-400 transform hover:scale-105 transition">
-            Playback Example
-          </button>
-        </div>
-      </section>
-
-      <!-- Footer -->
-      <footer class="footer">
-        <h2>Created by:</h2>
-        <p>Anjali V., Peter K., Nicholas T.</p>
-      </footer>
+      <div class="right-content">
+        <img src="/music-visual.gif" alt="Music Visualization" />
+        <button @click="playbackExample" class="playback-button">
+          Playback Example
+        </button>
+      </div>
     </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <h2>Created by:</h2>
+      <p>Anjali V., Peter K., Nicholas T.</p>
+    </footer>
+  </div>
 </template>
 
 <script>
@@ -44,10 +41,14 @@ export default {
   components: {
     Navbar,
   },
+  methods: {
+    playbackExample() {
+      console.log("Playback triggered!");
+      // Implement your playback logic here
+    }
+  }
 };
 </script>
-
-<!-- Include your styles as needed -->
 
 <style scoped>
 /* General Styles */
@@ -56,112 +57,101 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  background: linear-gradient(to bottom right, #00ffccd5, #0342e0);
+  background: linear-gradient(to bottom right, #d9e9f4, #98c8e0);
   color: #333;
-  padding: 20px;
-  position: relative;
-  transition: background 0.5s ease, color 0.5s ease;
+  padding: 5vw 3vw;
+  font-family: "Comic Sans MS", cursive, sans-serif;
+  box-sizing: border-box;
+  width: 100%;
 }
 
-/* Hero Section */
-.hero {
+/* Combined Section */
+.main-section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
-  margin-top: 80px;
+  gap: 40px;
+  width: 100%;
+  max-width: 1200px;
+  margin-top: 5vh;
 }
 
-.hero-text h1 {
-  font-size: 48px;
-  font-weight: bold;
-  color: #ffcc00;
+@media (min-width: 768px) {
+  .main-section {
+    flex-direction: row;
+    justify-content: space-between;
+  }
 }
 
-.hero-text p {
-  font-size: 18px;
-  max-width: 500px;
-  margin-top: 10px;
-  color: #555;
+.left-content {
+  flex: 1;
+  max-width: 600px;
+  width: 100%;
 }
 
-.btn-primary {
+.right-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+.right-content img {
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Buttons */
+.btn-primary,
+.playback-button {
   display: inline-block;
-  margin-top: 20px;
-  background: #ffcc00;
-  color: black;
-  padding: 12px 20px;
+  background: #1d4ed8;
+  color: white;
+  padding: 1rem 2rem;
   border-radius: 8px;
-  text-decoration: none;
   font-weight: bold;
-  transition: background 0.3s, transform 0.3s;
-}
-
-.btn-primary:hover {
-  background: #ffdb4d;
-  transform: scale(1.05);
-}
-
-/* Hero Image */
-.hero-image {
-  margin-top: 20px;
-}
-
-.hero-image img {
-  width: 300px;
-  border-radius: 10px;
-  transition: transform 0.3s;
-}
-
-.hero-image img:hover {
-  transform: scale(1.05);
-}
-
-/* Visualize Section */
-.visualize {
-  margin-top: 50px;
   text-align: center;
+  transition: background 0.3s, transform 0.3s;
+  font-size: 1rem;
+  width: 100%;
+  max-width: 300px;
 }
 
-.visualize h2 {
-  font-size: 28px;
-  color: #ffcc00;
-}
-
-.visualize p {
-  font-size: 16px;
-  margin-top: 10px;
-  color: #555;
-}
-
-.visualize img {
-  margin-top: 15px;
-  width: 300px;
-  border-radius: 8px;
-  transition: transform 0.3s;
-}
-
-.visualize img:hover {
+.btn-primary:hover,
+.playback-button:hover {
+  background: #2563eb;
   transform: scale(1.05);
+}
+
+.playback-button {
+  background: #3b82f6;
+}
+
+.playback-button:hover {
+  background: #60a5fa;
 }
 
 /* Footer */
 .footer {
-  margin-top: 50px;
+  margin-top: auto;
   text-align: center;
-  border-top: 1px solid #ffcc00;
-  padding-top: 15px;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
+  width: 100%;
 }
 
 .footer h2 {
-  font-size: 18px;
-  color: #ffcc00;
+  font-size: 1rem;
+  color: #000;
 }
 
 .footer p {
-  font-size: 14px;
+  font-size: 0.9rem;
   color: #555;
 }
-
 </style>
