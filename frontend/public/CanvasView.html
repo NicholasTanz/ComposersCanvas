@@ -290,6 +290,11 @@
         <div id="settings-panel" class="collapsed">
             <h3>Score Settings</h3>
             <div class="input-group">
+                <label for="score-title">Score Title:</label>
+                <input type="text" id="score-title" placeholder="Enter Title" />
+                <button id="update-title">Set Title</button>
+            </div>
+            <div class="input-group">
                 <label for="key-signature">Key Signature:</label>
                 <input type="text" id="key-signature" placeholder="e.g., C, G, F#, Bb" />
                 <button id="update-key">Set Key</button>
@@ -324,7 +329,7 @@
         
         // I'm so sorry
         
-
+        let = scoreTitle = '';
         let selectedNoteIndexes = []; // Track the selected note index
         let lastSelectedIndex = null;
         let dur = "q";
@@ -392,10 +397,9 @@
         function renderNotes() {
             staveWidth = (70 * timeSignatureNumerator) + keysignum[currentKeySignature]*30; // Default width for measures
             context.clear();
-            const title = "My Music Title";
-            const titleWidth = context.measureText(title).width;
+            const titleWidth = context.measureText(scoreTitle).width;
             const centerX = (window.innerWidth - titleWidth) / 2;  // Center it on the screen
-            context.setFont('Arial', 18, 'bold').fillText(title, centerX, 30);
+            context.setFont('Arial', 18, 'bold').fillText(scoreTitle, centerX, 30);
             divNotesDisplay.innerHTML = "<strong>Notes Array:</strong> " + JSON.stringify(notes, null, 2);
             notes = makeProperMeasure(notes);
             const measures = groupNotesIntoMeasures(notes); // Group notes into measures
@@ -901,6 +905,10 @@
         });
         document.getElementById('settings-toggle').addEventListener('click', () => {
             document.getElementById('settings-panel').classList.toggle('collapsed');
+        });
+        document.getElementById('update-title').addEventListener('click', function() {
+            scoreTitle = document.getElementById('score-title').value;
+            renderNotes();  // Re-render the score with the new title
         });
         renderNotes();
     </script>
