@@ -4,320 +4,368 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Interactive Staff Notes</title>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/vexflow/4.2.5/vexflow-min.js"></script>    
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/vexflow/4.2.5/vexflow-min.js"></script>
         <script src="https://unpkg.com/tone"></script>
         <style>
-            body {
-                padding-top: 80px; /* More space for toolbar */
-                background: #d9e9f4; /* Updated background color */
-                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            }
-    
-            /* Fixed Toolbar */
-            .fixed-toolbar {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                background: white;
-                border-bottom: 1px solid #ddd;
-                padding: 8px 16px;
-                display: flex;
-                flex-wrap: nowrap;
-                align-items: center;
-                gap: 12px;
-                z-index: 1000;
-                height: 60px;
-                box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-            }
-    
-            .fixed-toolbar button {
-                background: #ffffff;
-                border: 1px solid #ffffff;
-                border-radius: 4px;
-                padding: 6px;
-                transition: all 0.2s ease;
-                cursor: pointer;
-            }
-    
-            .fixed-toolbar button:hover {
-                background: #1d4ed8; /* Dark blue hover effect */
-            }
-    
-            .fixed-toolbar img {
-                width: 32px;
-                height: 32px;
-            }
-    
-            /* Tutorial Text in Toolbar */
-            .toolbar-tutorial {
-                font-size: 18px;  /* Bigger text */
-                color: #555;
-                flex: 1;         /* Takes remaining space */
-                text-align: center;
-                align-self: center; /* Vertically centered */
-            }
-    
-            #note-selection {
-                position: relative;
-                display: inline-block;
-            }
-    
-            #note-options {
-                display: none;
-                position: absolute;
-                top: 50px;
-                left: 0;
-                background: white;
-                border: 1px solid #ddd;
-                border-radius: 6px;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                padding: 8px;
-                gap: 6px;
-            }
-    
-            #note-selection:hover #note-options,
-            #note-options:focus-within {
-                display: flex;
-                flex-direction: row;
-            }
-    
-            .note-option img, 
-            #rest-button img, 
-            #play-button img, 
-            #pause-button img {
-                width: 28px;
-                height: 28px;
-                transition: transform 0.2s;
-            }
-    
-            .note-option img:hover,
-            #rest-button img:hover,
-            #play-button img:hover,
-            #pause-button img:hover {
-                transform: scale(1.1);
-            }
-    
-            #rest-button.active {
-                background-color: #dbe6e9;
-                border: 1px solid #aad3df;
-            }
-    
-            input, button {
-                font-size: 14px;
-            }
-    
-            input {
-                padding: 6px;
-                border-radius: 4px;
-                border: 1px solid #ccc;
-            }
-    
-            button {
-                border-radius: 4px;
-                padding: 6px 10px;
-                background: #f9f9f9;
-                border: 1px solid #ffffff;
-                cursor: pointer;
-                transition: background 0.2s;
-            }
-    
-            button:hover {
-                background: #1d4ed8; /* Dark blue hover effect */
-            }
-    
-            #my-stave {
-                margin-top: 30px;
-                padding: 15px;
-                background: white;
-                border: 1px solid #ddd;
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            }
-    
-            #notes-display {
-                margin-top: 20px;
-                font-family: monospace;
-                font-size: 13px;
-                color: #444;
-                background: #fff;
-                border: 1px solid #ddd;
-                padding: 10px;
-                border-radius: 6px;
-            }
-    
-            #settings-container {
-                margin: 20px 0;
-                max-width: 400px;
-            }
-    
-            #settings-toggle {
-                background: #f0f0f0;
-                border: 1px solid #ccc;
-                border-radius: 8px;
-                padding: 8px 12px;
-                cursor: pointer;
-                width: 100%;
-                text-align: left;
-                font-weight: bold;
-                transition: background 0.2s;
-            }
-    
-            #settings-toggle:hover {
-                background: #e0e0e0;
-            }
-    
-            #settings-panel {
-                margin-top: 8px;
-                padding: 15px;
-                background: #ffffff;
-                border: 1px solid #ccc;
-                border-radius: 8px;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-                transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
-                overflow: hidden;
-            }
-    
-            #settings-panel.collapsed {
-                max-height: 0;
-                opacity: 0;
-                padding: 0 15px;
-                pointer-events: none;
-            }
-    
-            #settings-panel:not(.collapsed) {
-                max-height: 500px; /* Enough for content */
-                opacity: 1;
-                pointer-events: auto;
-            }
-    
-            .input-group {
-                margin-bottom: 12px;
-            }
-    
-            .input-group label {
-                display: block;
-                margin-bottom: 4px;
-                font-weight: 500;
-                color: #555;
-            }
-    
-            .input-group input {
-                padding: 6px 8px;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-                margin-right: 5px;
-                width: calc(100% - 12px);
-            }
-    
-            .time-inputs {
-                display: flex;
-                align-items: center;
-                gap: 5px;
-            }
-    
-            .time-inputs input {
-                width: 60px;
-            }
-    
-            .time-inputs span {
-                font-weight: bold;
-            }
-    
-            .input-group button {
-                margin-top: 5px;
-                background: #f0f0f0;
-                border: 1px solid #bbb;
-                border-radius: 4px;
-                padding: 5px 10px;
-                cursor: pointer;
-                transition: background 0.2s;
-            }
-    
-            .input-group button:hover {
-                background: #e0e0e0;
-            }
-    
-            .floating-back {
-                position: fixed;
-                bottom: 20px;
-                left: 20px;
-                border-radius: 50%;
-                width: 50px;
-                height: 50px;
-                background-color: #1d4ed8; /* Dark blue background */
-                color: white;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 18px;
-                transition: background 0.2s;
-            }
-    
-            .floating-back:hover {
-                background-color: #2563eb; /* Dark blue hover effect */
-            }
+          body {
+            padding-top: 80px; /* More space for toolbar */
+            background: #d9e9f4; /* Page background */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          }
+      
+          /* Fixed Toolbar */
+          .fixed-toolbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-bottom: 1px solid #ddd;
+            padding: 8px 16px;
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 12px;
+            z-index: 1000;
+            height: 60px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+          }
+      
+          .fixed-toolbar button {
+            background: #ffffff;
+            border: 1px solid #ffffff;
+            border-radius: 4px;
+            padding: 6px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+          }
+      
+          .fixed-toolbar button:hover {
+            background: #1d4ed8; /* Dark blue hover effect */
+          }
+      
+          .fixed-toolbar img {
+            width: 32px;
+            height: 32px;
+          }
+      
+          /* Tutorial Dropdown Container */
+          .tutorial-container {
+            position: relative;
+            margin-left: auto; /* Push to the right side */
+          }
+      
+          .tutorial-btn {
+            background: #ffffff;
+            border: 1px solid #ffffff;
+            border-radius: 4px;
+            padding: 6px 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+          }
+      
+          .tutorial-btn:hover {
+            background: #1d4ed8;
+            color: white;
+          }
+      
+          /* Dropdown Content: Hidden by default */
+          .tutorial-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 10px;
+            width: 260px;
+            z-index: 1001;
+            font-size: 14px;
+            color: #333;
+            line-height: 1.4;
+            margin-top: 4px;
+          }
+          
+          /* Show dropdown when container has the "active" class */
+          .tutorial-container.active .tutorial-dropdown {
+            display: block;
+          }
+      
+          /* Other styles remain unchanged */
+          #note-selection {
+            position: relative;
+            display: inline-block;
+          }
+      
+          #note-options {
+            display: none;
+            position: absolute;
+            top: 50px;
+            left: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 8px;
+            gap: 6px;
+          }
+      
+          #note-selection:hover #note-options,
+          #note-options:focus-within {
+            display: flex;
+            flex-direction: row;
+          }
+      
+          .note-option img, 
+          #rest-button img, 
+          #play-button img, 
+          #pause-button img {
+            width: 28px;
+            height: 28px;
+            transition: transform 0.2s;
+          }
+      
+          .note-option img:hover,
+          #rest-button img:hover,
+          #play-button img:hover,
+          #pause-button img:hover {
+            transform: scale(1.1);
+          }
+      
+          #rest-button.active {
+            background-color: #dbe6e9;
+            border: 1px solid #aad3df;
+          }
+      
+          input, button {
+            font-size: 14px;
+          }
+      
+          input {
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+          }
+      
+          button {
+            border-radius: 4px;
+            padding: 6px 10px;
+            background: #f9f9f9;
+            border: 1px solid #ffffff;
+            cursor: pointer;
+            transition: background 0.2s;
+          }
+      
+          button:hover {
+            background: #1d4ed8; /* Dark blue hover effect */
+          }
+      
+          #my-stave {
+            margin-top: 30px;
+            padding: 15px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+          }
+      
+          #notes-display {
+            margin-top: 20px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #444;
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 6px;
+          }
+      
+          #settings-container {
+            margin: 20px 0;
+            max-width: 400px;
+          }
+      
+          #settings-toggle {
+            background: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            font-weight: bold;
+            transition: background 0.2s;
+          }
+      
+          #settings-toggle:hover {
+            background: #e0e0e0;
+          }
+      
+          #settings-panel {
+            margin-top: 8px;
+            padding: 15px;
+            background: #ffffff;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
+            overflow: hidden;
+          }
+      
+          #settings-panel.collapsed {
+            max-height: 0;
+            opacity: 0;
+            padding: 0 15px;
+            pointer-events: none;
+          }
+      
+          #settings-panel:not(.collapsed) {
+            max-height: 500px; /* Enough for content */
+            opacity: 1;
+            pointer-events: auto;
+          }
+      
+          .input-group {
+            margin-bottom: 12px;
+          }
+      
+          .input-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 500;
+            color: #555;
+          }
+      
+          .input-group input {
+            padding: 6px 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-right: 5px;
+            width: calc(100% - 12px);
+          }
+      
+          .time-inputs {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+          }
+      
+          .time-inputs input {
+            width: 60px;
+          }
+      
+          .time-inputs span {
+            font-weight: bold;
+          }
+      
+          .input-group button {
+            margin-top: 5px;
+            background: #f0f0f0;
+            border: 1px solid #bbb;
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+          }
+      
+          .input-group button:hover {
+            background: #e0e0e0;
+          }
+      
+          .floating-back {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            background-color: #1d4ed8; /* Dark blue background */
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: background 0.2s;
+          }
+      
+          .floating-back:hover {
+            background-color: #2563eb; /* Dark blue hover effect */
+          }
         </style>
-    </head>
-    <body>
+      </head>
+      <body>
         <a href="/" class="floating-back">←</a>
         <div>
-            <div class="fixed-toolbar">
-                <!-- Toolbar Controls -->
-                <div id="note-selection">
-                    <button id="note-button">
-                        <img src="images/quarter.png" alt="Quarter Note" id="note-icon" style="width: 40px; height: 40px;">
-                    </button>
-                    <div id="note-options" class="hidden">
-                        <button class="note-option" data-value="w"><img src="images/whole.svg" alt="Whole Note"></button>
-                        <button class="note-option" data-value="hd"><img src="images/dotted.svg" alt="Dotted Half Note"></button>
-                        <button class="note-option" data-value="h"><img src="images/half.png" alt="Half Note"></button>
-                        <button class="note-option" data-value="q"><img src="images/quarter.png" alt="Quarter Note"></button>
-                        <button class="note-option" data-value="8"><img src="images/eighth.png" alt="Eighth Note"></button>
-                        <button class="note-option" data-value="16"><img src="images/sixteenth.png" alt="Sixteenth Note"></button>
-                    </div>
-                </div>
-                <button id="rest-button">
-                    <img src="images/rest.png" alt="Rest" style="width: 40px; height: 40px;">
-                </button>
-                <button id="play-button">
-                    <img src="images/play.svg" alt="Play" style="width: 40px; height: 40px;">
-                </button>
-                <button id="pause-button">
-                    <img src="images/pause.svg" alt="Pause" style="width: 40px; height: 40px;">
-                </button>
-                <!-- Tutorial Instructions on the Toolbar -->
-                <div class="toolbar-tutorial">
-                    a: add note | w: go up | s: go down | delete: delete | r: rests | 1-6: note types | shift: half up/down | shift+click: select multiple
-                </div>
+          <div class="fixed-toolbar">
+            <!-- Toolbar Controls -->
+            <div id="note-selection">
+              <button id="note-button">
+                <img src="images/quarter.png" alt="Quarter Note" id="note-icon" style="width: 40px; height: 40px;">
+              </button>
+              <div id="note-options" class="hidden">
+                <button class="note-option" data-value="w"><img src="images/whole.svg" alt="Whole Note"></button>
+                <button class="note-option" data-value="hd"><img src="images/dotted.svg" alt="Dotted Half Note"></button>
+                <button class="note-option" data-value="h"><img src="images/half.png" alt="Half Note"></button>
+                <button class="note-option" data-value="q"><img src="images/quarter.png" alt="Quarter Note"></button>
+                <button class="note-option" data-value="8"><img src="images/eighth.png" alt="Eighth Note"></button>
+                <button class="note-option" data-value="16"><img src="images/sixteenth.png" alt="Sixteenth Note"></button>
+              </div>
             </div>
+            <button id="rest-button">
+              <img src="images/rest.png" alt="Rest" style="width: 40px; height: 40px;">
+            </button>
+            <button id="play-button">
+              <img src="images/play.svg" alt="Play" style="width: 40px; height: 40px;">
+            </button>
+            <button id="pause-button">
+              <img src="images/pause.svg" alt="Pause" style="width: 40px; height: 40px;">
+            </button>
+            
+            <!-- Tutorial Dropdown on the right side -->
+            <div class="tutorial-container" id="tutorial-container">
+              <button class="tutorial-btn" id="tutorial-btn">Tutorial</button>
+              <div class="tutorial-dropdown">
+                <strong>Key Bindings:</strong><br>
+                a: add note<br>
+                w: go up<br>
+                s: go down<br>
+                delete: delete<br>
+                r: rests<br>
+                1-6: note types<br>
+                shift: half up/down<br>
+                shift+click: select multiple
+              </div>
+            </div>
+          </div>
         </div>
         <div id="settings-container">
-            <button id="settings-toggle">⚙️ Score Settings</button>
-            <div id="settings-panel" class="collapsed">
-                <h3>Score Settings</h3>
-                <div class="input-group">
-                    <label for="score-title">Score Title:</label>
-                    <input type="text" id="score-title" placeholder="Enter Title" />
-                    <button id="update-title">Set Title</button>
-                </div>
-                <div class="input-group">
-                    <label for="key-signature">Key Signature:</label>
-                    <input type="text" id="key-signature" placeholder="e.g., C, G, F#, Bb" />
-                    <button id="update-key">Set Key</button>
-                </div>
-                <div class="input-group">
-                    <label for="numerator">Time Signature:</label>
-                    <div class="time-inputs">
-                        <input type="number" id="numerator" placeholder="4" min="1" />
-                        <span>/</span>
-                        <input type="number" id="denominator" placeholder="4" min="1" />
-                    </div>
-                    <button id="update-time">Set Time Signature</button>
-                </div>
+          <button id="settings-toggle">⚙️ Score Settings</button>
+          <div id="settings-panel" class="collapsed">
+            <h3>Score Settings</h3>
+            <div class="input-group">
+              <label for="score-title">Score Title:</label>
+              <input type="text" id="score-title" placeholder="Enter Title" />
+              <button id="update-title">Set Title</button>
             </div>
+            <div class="input-group">
+              <label for="key-signature">Key Signature:</label>
+              <input type="text" id="key-signature" placeholder="e.g., C, G, F#, Bb" />
+              <button id="update-key">Set Key</button>
+            </div>
+            <div class="input-group">
+              <label for="numerator">Time Signature:</label>
+              <div class="time-inputs">
+                <input type="number" id="numerator" placeholder="4" min="1" />
+                <span>/</span>
+                <input type="number" id="denominator" placeholder="4" min="1" />
+              </div>
+              <button id="update-time">Set Time Signature</button>
+            </div>
+          </div>
         </div>
-        <div id="my-stave"></div>        
+        <div id="my-stave"></div>           
     <script>
         const VF = Vex.Flow;
         const divStave = document.getElementById("my-stave");
@@ -345,6 +393,8 @@
         let staveWidth = 100*timeSignatureNumerator;
         let rowSpacing = 150;
         let totalRows = 1;
+        const tutorialBtn = document.getElementById('tutorial-btn');
+        const tutorialContainer = document.getElementById('tutorial-container');
 
         // Define accidentals for sharp and flat handling
         const halfSteps = {
@@ -369,12 +419,22 @@
 
         const wholeSteps = {
             c: ["d"],
+            "c#": ["d#"],
+            db: ["eb"],
             d: ["e"],
+            "d#": ["f#"],
+            eb: ["gb"],
             e: ["f"],
             f: ["g"],
+            "f#": ["g#"],
+            gb: ["ab"],
             g: ["a"],
+            "g#": ["a#"],
+            ab: ["bb"],
             a: ["b"],
-            b: ["c"], // Ensure b maps to c, not bb
+            "a#": ["c#"],
+            bb: ["db"],
+            b: ["c"],
         };
 
         const keysignum = {
@@ -775,11 +835,11 @@
             let newNote;
             if (direction === "up") {
                 newNote = wholeSteps[note] ? wholeSteps[note][0] : note;
-                if (newNote === "c") notes[index].key = `${newNote}/${+octave + 1}`; // Handle octave change
+                if (newNote === "c" || newNote === "c#" || newNote === "db") notes[index].key = `${newNote}/${+octave + 1}`; // Handle octave change
                 else notes[index].key = `${newNote}/${octave}`;
             } else if (direction === "down") {
                 newNote = reverseWholeSteps[note] || note;
-                if (newNote === "b") notes[index].key = `${newNote}/${+octave - 1}`; // Handle octave change
+                if (newNote === "b" || newNote === "a#" || newNote === "bb") notes[index].key = `${newNote}/${+octave - 1}`; // Handle octave change
                 else notes[index].key = `${newNote}/${octave}`;
             }
 
@@ -989,6 +1049,18 @@
         document.getElementById('update-title').addEventListener('click', function() {
             scoreTitle = document.getElementById('score-title').value;
             renderNotes();  // Re-render the score with the new title
+        });
+        
+        tutorialBtn.addEventListener('click', function(e) {
+            e.stopPropagation(); // Prevent click from bubbling up if necessary
+            tutorialContainer.classList.toggle('active');
+        });
+
+        // Optional: If clicking anywhere outside, close the dropdown
+        document.addEventListener('click', function(e) {
+            if (!tutorialContainer.contains(e.target)) {
+                tutorialContainer.classList.remove('active');
+            }
         });
         renderNotes();
     </script>
