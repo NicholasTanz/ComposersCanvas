@@ -111,6 +111,7 @@ form {
   width: 100%;
   padding: 12px;
   border-radius: 8px;
+  border: 1px solid #ccc;
   background: #f9f9f9;
   margin-top: 6px;
   margin-bottom: 20px;

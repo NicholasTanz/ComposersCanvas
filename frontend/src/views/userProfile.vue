@@ -44,7 +44,7 @@ async function fetchSavedCompositions() {
 </script>
 
 <template>
-  
+  <Navbar />
   <div>
     <h1>User Profile</h1>
     
