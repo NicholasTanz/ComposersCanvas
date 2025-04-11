@@ -8,9 +8,11 @@ const username = ref('');
 const password = ref('');
 const email = ref('');
 const response = ref(null);
+import { useAuthStore } from '@/stores/auth'; // Import the Pinia store
+const authStore = useAuthStore(); // Initialize store
 
 const handleSubmit = async (event) => {
-
+  event.preventDefault();
   try {
     const res = await axios.post(backendUrl+"/register", {
       username: username.value,
@@ -20,9 +22,14 @@ const handleSubmit = async (event) => {
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json"
-      }
-    });
+    },
+    withCredentials: true,
+  });
 
+    await authStore.checkAuthStatus(); // Check if user is authenticated
+    username.value = "";
+    password.value = "";
+    email.value = "";
     response.value = res.data;
   } catch (error) {
     console.error("Error:", error.response?.data || error.message);
@@ -34,19 +41,19 @@ const handleSubmit = async (event) => {
 <template>
     <div class="container">
       <Navbar />
-      <h2 class="text-3xl font-bold text-yellow-300">Create Account</h2>
-      <form @submit="handleSubmit" class="space-y-6 mt-6">
+      <h2>Create Account</h2>
+      <form @submit="handleSubmit">
         <div>
-          <label for="username" class="text-lg text-gray-700 dark:text-gray-300">Username:</label>
-          <input type="text" id="username" v-model="username" required class="input-field" />
+          <label for="username">Username:</label>
+          <input type="text" id="username" v-model="username" required class="input-field"/>
         </div>
         <div>
-          <label for="password" class="text-lg text-gray-700 dark:text-gray-300">Password:</label>
-          <input type="password" id="password" v-model="password" required class="input-field" />
+          <label for="password">Password:</label>
+          <input type="password" id="password" v-model="password" required class="input-field"/>
         </div>
         <div>
-          <label for="email" class="text-lg text-gray-700 dark:text-gray-300">Email:</label>
-          <input type="email" id="email" v-model="email" required class="input-field" />
+          <label for="email">Email:</label>
+          <input type="email" id="email" v-model="email" required class="input-field"/>
         </div>
         <button type="submit" class="btn-primary">Submit</button>
       </form>
@@ -55,7 +62,6 @@ const handleSubmit = async (event) => {
 
 <style scoped>
 .container {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;

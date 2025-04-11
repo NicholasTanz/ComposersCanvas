@@ -30,11 +30,33 @@ def register_routes(app : Flask):
         if existing_user:
             return jsonify({"message": "Username or email already taken"}), 400
 
+        if len(password) < 8 or not any(char.isupper() for char in password) or not any(char.islower() for char in password) or not any(char.isdigit() for char in password):
+            return jsonify({"message": "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number"}), 400
+
         # hash password. 
         hashed_password = generate_password_hash(password)
 
+        # Generate JWT token
+        token = jwt.encode(
+             {"username": username, "exp": datetime.now(timezone.utc) + timedelta(hours=1)},
+            str(os.getenv("SECRET_KEY")),
+            algorithm="HS256"
+            )
+        
+        response = make_response(jsonify({"message": "User created successfully"}), 200)
+        response.set_cookie(
+            "jwt",
+            token,
+            httponly=True,
+            secure=os.getenv("CORS_ORIGINS")[:5] == "https", 
+            samesite="None" if os.getenv("CORS_ORIGINS")[:5] == "https" else "Lax",
+        )
+
         # Add the new user to the database
-        response = addUser(username, hashed_password, email)
+        db_response = addUser(username, hashed_password, email)
+        if db_response[1] != 200:
+            return db_response
+
         return response
 
     # this route will be used to accept a username and password and authenticate the user.
@@ -123,7 +145,6 @@ def register_routes(app : Flask):
         response = removeUser(username)
         return response
 
-    # TODO: Add the following routes to the Flask application.
     # this route will be used to accept a composition and store it in the database.
     @app.route('/store_composition', methods=['POST'])
     def store_composition():

@@ -10,7 +10,7 @@ class TestLogin:
         # create a user - if it already exists - that is fine for this test.
         payload = {
             "username": "example_user",
-            "password": "securepassword123",
+            "password": "Securepassword123",
             "email": "myemail@gmail.com" 
         }
 
@@ -22,7 +22,7 @@ class TestLogin:
         # Login with the user we just created.
         payload = {
             "username": "example_user",
-            "password": "securepassword123"
+            "password": "Securepassword123"
         }
 
         headers = {
@@ -46,7 +46,7 @@ class TestLogin:
 
     def test_invalidLogin_NoUsername(self):
         payload = {
-            "password": "securepassword123"
+            "password": "Securepassword123"
         }
 
         headers = {

@@ -8,7 +8,7 @@ import requests
 
 URL = "http://localhost:5000/register"
 USER = "example_user"
-PASSWORD = "securepassword123"
+PASSWORD = "Securepassword123"
 EMAIL = "example@example.com"
 
 

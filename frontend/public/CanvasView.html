@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Interactive Staff Notes</title>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/vexflow/4.2.5/vexflow-min.js"></script>
-        <script src="https://unpkg.com/tone"></script>
-        <style>
-          body {
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Staff Notes</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vexflow/4.2.5/vexflow-min.js"></script>    
+    <script src="https://unpkg.com/tone"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+    <style>
+        body {
             padding-top: 80px; /* More space for toolbar */
             background: #d9e9f4; /* Page background */
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -355,13 +356,14 @@
               <button id="update-key">Set Key</button>
             </div>
             <div class="input-group">
-              <label for="numerator">Time Signature:</label>
-              <div class="time-inputs">
-                <input type="number" id="numerator" placeholder="4" min="1" />
-                <span>/</span>
-                <input type="number" id="denominator" placeholder="4" min="1" />
-              </div>
-              <button id="update-time">Set Time Signature</button>
+                <label for="numerator">Time Signature:</label>
+                <div class="time-inputs">
+                    <input type="number" id="numerator" placeholder="4" min="1" />
+                    <span>/</span>
+                    <input type="number" id="denominator" placeholder="4" min="1" />
+                </div>
+                <button id="update-time">Set Time Signature</button>
+                <button id="doc-gen">Generate Document</button> <!-- Temp Spot for PDF Gen Button -->
             </div>
           </div>
         </div>
@@ -1065,5 +1067,32 @@
         renderNotes();
     </script>
     <script src="ToneJS.js"></script>
+    <script>
+        function documentGeneration () {
+            return 0
+        }
+        document.getElementById("doc-gen").addEventListener("click", () => {
+            const staves = document.getElementById("my-stave");
+
+            const prev = staves.style.border;
+            staves.style.border = 'none';
+
+            const options = {
+                margin: [0.75, 0.5, 0.75, 0.5],
+                filename: 'sheet-music.pdf',
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 1, width: 1280 },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().from(staves).set(options).toPdf().get('pdf').then(function (pdf) {
+                window.open(pdf.output('bloburl'), '_blank');
+                setTimeout(() => {              // For handling with elements to be shown/hidden in the PDF
+                    staves.style.border = prev; // For showing the border later
+                }, 1000);
+            });
+            
+
+        });
+    </script>
 </body>
 </html>

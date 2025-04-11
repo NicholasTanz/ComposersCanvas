@@ -3,7 +3,7 @@ import requests
 
 URL = "http://localhost:5000/delete_user"
 USER = "example_user"
-PASSWORD = "securepassword123"
+PASSWORD = "Securepassword123"
 EMAIL = "example@example.com"
 
 

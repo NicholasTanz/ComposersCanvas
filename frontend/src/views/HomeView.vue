@@ -34,8 +34,8 @@
 </template>
 
 <script>
+// JS logic. 
 import Navbar from '../components/Navbar.vue';
-
 export default {
   name: "HomePage",
   components: {
@@ -51,10 +51,8 @@ export default {
 </script>
 
 <style scoped>
-/* General Styles */
+/* CSS logic. */
 .container {
-  min-height: 100vh;
-  display: flex;
   flex-direction: column;
   align-items: center;
   background: linear-gradient(to bottom right, #d9e9f4, #98c8e0);
