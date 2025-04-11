@@ -392,6 +392,10 @@
         function renderNotes() {
             staveWidth = (70 * timeSignatureNumerator) + keysignum[currentKeySignature]*30; // Default width for measures
             context.clear();
+            const title = "My Music Title";
+            const titleWidth = context.measureText(title).width;
+            const centerX = (window.innerWidth - titleWidth) / 2;  // Center it on the screen
+            context.setFont('Arial', 18, 'bold').fillText(title, centerX, 30);
             divNotesDisplay.innerHTML = "<strong>Notes Array:</strong> " + JSON.stringify(notes, null, 2);
             notes = makeProperMeasure(notes);
             const measures = groupNotesIntoMeasures(notes); // Group notes into measures
@@ -516,6 +520,8 @@
                     textBracket.setLine(3);
                     brackets.push(textBracket);
                 }
+
+                var beams = VF.Beam.generateBeams(measureTickables, {groups: [new Vex.Flow.Fraction(1, 4)]});
                 
                 voice.addTickables(measureTickables);
                 VF.Accidental.applyAccidentals([voice], currentKeySignature);
@@ -527,6 +533,13 @@
                 
                 voice.draw(context, stave);
                 brackets.forEach(bracket => bracket.setContext(context).draw());
+                if (Array.isArray(beams)) {
+                    beams.forEach(function(b) {
+                        b.setContext(context).draw();
+                    });
+                } else {
+                    console.error("Beams is not an array:", beams);
+                }
 
             };
             window.vexNotes = notes;
