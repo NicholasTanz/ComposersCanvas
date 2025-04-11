@@ -259,7 +259,7 @@
     </style>
 </head>
 <body>
-    <a href="window.location.href = '/'" class="floating-back">←</a>
+    <a href="/" class="floating-back">←</a>
     <div>
         <div class="fixed-toolbar">
             <div id="note-selection">
@@ -290,6 +290,11 @@
         <button id="settings-toggle">⚙️ Score Settings</button>
         <div id="settings-panel" class="collapsed">
             <h3>Score Settings</h3>
+            <div class="input-group">
+                <label for="score-title">Score Title:</label>
+                <input type="text" id="score-title" placeholder="Enter Title" />
+                <button id="update-title">Set Title</button>
+            </div>
             <div class="input-group">
                 <label for="key-signature">Key Signature:</label>
                 <input type="text" id="key-signature" placeholder="e.g., C, G, F#, Bb" />
@@ -326,8 +331,9 @@
         
         // I'm so sorry
         
-
-        let selectedNoteIndex = null; // Track the selected note index
+        let = scoreTitle = '';
+        let selectedNoteIndexes = []; // Track the selected note index
+        let lastSelectedIndex = null;
         let dur = "q";
         let isRestMode = false; // Track if we're in rest mode
         let currentKeySignature = 'C'
@@ -393,6 +399,9 @@
         function renderNotes() {
             staveWidth = (70 * timeSignatureNumerator) + keysignum[currentKeySignature]*30; // Default width for measures
             context.clear();
+            const titleWidth = context.measureText(scoreTitle).width;
+            const centerX = (window.innerWidth - titleWidth) / 2;  // Center it on the screen
+            context.setFont('Arial', 18, 'bold').fillText(scoreTitle, centerX, 30);
             divNotesDisplay.innerHTML = "<strong>Notes Array:</strong> " + JSON.stringify(notes, null, 2);
             notes = makeProperMeasure(notes);
             const measures = groupNotesIntoMeasures(notes); // Group notes into measures
@@ -475,7 +484,7 @@
                     }
 
                     // Highlight the selected note by comparing global index
-                    if (globalIndex === selectedNoteIndex) {
+                    if (selectedNoteIndexes.includes(globalIndex)) {
                         staveNote.setStyle({ fillStyle: "red", strokeStyle: "red" });
                     }
 
@@ -517,6 +526,8 @@
                     textBracket.setLine(3);
                     brackets.push(textBracket);
                 }
+
+                var beams = VF.Beam.generateBeams(measureTickables, {groups: [new Vex.Flow.Fraction(1, 4)]});
                 
                 voice.addTickables(measureTickables);
                 VF.Accidental.applyAccidentals([voice], currentKeySignature);
@@ -528,6 +539,13 @@
                 
                 voice.draw(context, stave);
                 brackets.forEach(bracket => bracket.setContext(context).draw());
+                if (Array.isArray(beams)) {
+                    beams.forEach(function(b) {
+                        b.setContext(context).draw();
+                    });
+                } else {
+                    console.error("Beams is not an array:", beams);
+                }
 
             };
             window.vexNotes = notes;
@@ -686,9 +704,28 @@
         function attachClickEvents() {
             const noteGroups = divStave.querySelectorAll("svg g.vf-stavenote");
             noteGroups.forEach((group, index) => {
-                group.addEventListener("click", () => {
-                    selectedNoteIndex = index; // Update the selected note index based on the global order
-                    renderNotes(); // Re-render notes to apply the highlight
+                group.addEventListener("click", (event) => {
+                    if (event.shiftKey && lastSelectedIndex !== null) {
+                        selectedNoteIndexes = [];
+                        const start = Math.min(lastSelectedIndex, index);
+                        const end = Math.max(lastSelectedIndex, index);
+                        for (let i = start; i <= end; i++) {
+                            selectedNoteIndexes.push(i);
+                        }
+                    } else if (event.ctrlKey || event.metaKey) {
+                        // Toggle note selection
+                        if (selectedNoteIndexes.includes(index)) {
+                            selectedNoteIndexes = selectedNoteIndexes.filter(i => i !== index);
+                        } else {
+                            selectedNoteIndexes.push(index);
+                        }
+                        lastSelectedIndex = index;
+                    } else {
+                        // Single click without modifiers
+                        selectedNoteIndexes = [index];
+                        lastSelectedIndex = index;
+                    }
+                    renderNotes();
                 });
             });
         }
@@ -716,51 +753,69 @@
         // Key event listeners
         window.addEventListener("keydown", (event) => {
             if (event.key === "w") {
-                moveNoteHalfStep(selectedNoteIndex, "up");
+                selectedNoteIndexes.forEach(index => moveNoteHalfStep(index, "up"));
             } else if (event.key === "s") {
-                moveNoteHalfStep(selectedNoteIndex, "down");
+                selectedNoteIndexes.forEach(index => moveNoteHalfStep(index, "down"));
             } else if (event.key === "ArrowRight") {
                 // Move forward in the notes array
-                if (selectedNoteIndex !== null) {
-                    selectedNoteIndex = (selectedNoteIndex + 1) % notes.length;
+                if (selectedNoteIndexes.length > 0) {
+                    let maxIndex = Math.max(...selectedNoteIndexes);
+                    selectedNoteIndexes = [(maxIndex + 1) % notes.length];
+                    lastSelectedIndex = selectedNoteIndexes[0];
                     renderNotes();
                 }
             } else if (event.key === "ArrowLeft") {
                 // Move backward in the notes array
-                if (selectedNoteIndex !== null) {
-                    selectedNoteIndex = (selectedNoteIndex - 1 + notes.length) % notes.length;
+                if (selectedNoteIndexes.length > 0) {
+                    let minIndex = Math.min(...selectedNoteIndexes);
+                    selectedNoteIndexes = [(minIndex - 1 + notes.length) % notes.length];
+                    lastSelectedIndex = selectedNoteIndexes[0];
                     renderNotes();
                 }
             } else if (event.key === "a") {
-                if (selectedNoteIndex === null) {
-                    // If no note is selected, add the note at the end
-                    notes.push(isRestMode ? { key: "b/4", duration: dur + "r" } : { key: "g/4", duration: dur });
+                let newNote;
+
+                if (selectedNoteIndexes.length === 0) {
+                    // Default new note if nothing is selected
+                    newNote = isRestMode
+                        ? { key: "b/4", duration: dur + "r" }
+                        : { key: "g/4", duration: dur };
+                    notes.push(newNote);
+                    selectedNoteIndexes = [notes.length - 1];
+                    lastSelectedIndex = notes.length - 1;
                 } else {
-                    const selectedNote = notes[selectedNoteIndex];
-                    if (selectedNote.duration.includes("r") && !isRestMode) {
-                        notes[selectedNoteIndex] = { key: "g/4", duration: dur };
+                    let maxIndex = Math.max(...selectedNoteIndexes);
+                    const refNote = notes[maxIndex];
+
+                    if (refNote.duration.includes("r")) {
+                        // Copy rest or use default note
+                        newNote = isRestMode
+                            ? { key: "b/4", duration: dur + "r" }
+                            : { key: "g/4", duration: dur };
                     } else {
-                        // Insert the new note immediately after the selected note
-                        notes.splice(selectedNoteIndex + 1, 0, isRestMode ? { key: "b/4", duration: dur + "r" } : { key: "g/4", duration: dur });
-                        selectedNoteIndex += 1; // Update the selected note index to the newly added note
+                        // Copy key and octave from selected note
+                        newNote = isRestMode
+                            ? { key: "b/4", duration: dur + "r" }
+                            : { key: refNote.key, duration: dur };
+                    }
+
+                    // Add new note after the selected one
+                    if (maxIndex === notes.length - 1) {
+                        notes.push(newNote);
+                        selectedNoteIndexes = [notes.length - 1];
+                        lastSelectedIndex = notes.length - 1;
+                    } else {
+                        notes.splice(maxIndex + 1, 0, newNote);
+                        selectedNoteIndexes = [maxIndex + 1];
+                        lastSelectedIndex = maxIndex + 1;
                     }
                 }
                 renderNotes();
-            } else if (event.key === "Delete" && selectedNoteIndex !== null) {
-                notes.splice(selectedNoteIndex, 1);
-                if (selectedNoteIndex >= notes.length) {
-                    selectedNoteIndex = notes.length - 1;
-                }
-                if (notes.length === 0) {
-                    selectedNoteIndex = null;
-                }
-                renderNotes();
-            } else if (event.key === "n" && selectedNoteIndex !== null) {
-                const selectedNote = notes[selectedNoteIndex];
-                const pitch = selectedNote.key.split("/")[0];
-                const octave = selectedNote.key.split("/")[1];
-                selectedNote.key = pitch[0] + "/" + octave;
-                renderNotes();
+            } else if (event.key === "Delete" && selectedNoteIndexes.length > 0) {
+                notes = notes.filter((_, index) => !selectedNoteIndexes.includes(index));
+                selectedNoteIndexes = [];
+                lastSelectedIndex = null;
+                renderNotes();                          
             }
         });
 
@@ -839,8 +894,8 @@
                 if (requiredWidth > screenWidth) {
                     alert("Sorry, your screen is too small for this time signature.");
                 } 
-                else if (denom==0 || num == 0){
-                    alert("Sorry, 0 is not valid in a time signature.");
+                else if (denom <=0 || num <= 0){
+                    alert("Sorry, numbers less than 1 are not valid in a time signature.");
                 }
                 else {
                     // Otherwise, update the time signature
@@ -852,6 +907,10 @@
         });
         document.getElementById('settings-toggle').addEventListener('click', () => {
             document.getElementById('settings-panel').classList.toggle('collapsed');
+        });
+        document.getElementById('update-title').addEventListener('click', function() {
+            scoreTitle = document.getElementById('score-title').value;
+            renderNotes();  // Re-render the score with the new title
         });
         renderNotes();
     </script>
