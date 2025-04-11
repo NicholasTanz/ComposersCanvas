@@ -65,8 +65,29 @@ const handleSubmit = async (event) => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: 20px;
+  background: linear-gradient(to bottom right, #d9e9f4, #98c8e0);
+  color: #333;
+  padding: 5vw 3vw;
+  font-family: "Comic Sans MS", cursive, sans-serif;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+h2 {
+  font-size: 2rem;
+  color:rgb(38, 39, 41);
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+/* Form Styling */
+form {
+  width: 100%;
+  max-width: 500px;
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
 
 /* Input Fields */
@@ -74,17 +95,37 @@ const handleSubmit = async (event) => {
   display: block;
   width: 100%;
   padding: 12px;
-  margin-top: 8px;
-  margin-bottom: 18px;
   border-radius: 8px;
   border: 1px solid #ccc;
   background: #f9f9f9;
+  margin-top: 6px;
+  margin-bottom: 20px;
+  transition: all 0.3s ease-in-out;
+  font-size: 1rem;
 }
 
-/* Submit Button */
+.input-field:focus {
+  outline: none;
+  border-color: #3b82f6;
+  background: #eef6ff;
+}
+
+/* Button */
 .btn-primary {
-  width: 100%;
-  padding: 14px;
+  display: inline-block;
+  background: #1d4ed8;
+  color: white;
+  padding: 1rem 2rem;
   border-radius: 8px;
+  font-weight: bold;
+  text-align: center;
+  transition: background 0.3s, transform 0.3s;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.btn-primary:hover {
+  background: #2563eb;
+  transform: scale(1.05);
 }
 </style>
