@@ -7,6 +7,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vexflow/4.2.5/vexflow-min.js"></script>    
     <script src="https://unpkg.com/tone"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <style>
         body {
             padding-top: 80px; /* More space for toolbar */
@@ -367,6 +368,22 @@
             </div>
           </div>
         </div>
+        <div id="save-fetch-container" style="margin-top: 20px; padding: 10px;">
+            <!-- Save Composition -->
+            <div class="input-group">
+              <label for="save-name">Save Composition As:</label>
+              <input type="text" id="save-name" placeholder="Enter composition name" />
+              <button id="save-composition">Save</button>
+            </div>
+          
+            <!-- Fetch Composition -->
+            <div class="input-group" style="margin-top: 10px;">
+              <label for="fetch-name">Load Composition:</label>
+              <input type="text" id="fetch-name" placeholder="Enter composition name" />
+              <button id="fetch-composition">Load</button>
+            </div>
+          </div>
+
         <div id="my-stave"></div>           
     <script>
         const VF = Vex.Flow;
@@ -382,7 +399,7 @@
         ];
         
         // I'm so sorry
-        
+
         let = scoreTitle = '';
         let selectedNoteIndexes = []; // Track the selected note index
         let lastSelectedIndex = null;
@@ -397,6 +414,80 @@
         let totalRows = 1;
         const tutorialBtn = document.getElementById('tutorial-btn');
         const tutorialContainer = document.getElementById('tutorial-container');
+
+        // logic for saving and fetching via backend api.
+        document.getElementById('save-composition').addEventListener('click', () => {
+        const name = document.getElementById('save-name').value;
+        const composition = {
+            scoreTitle: scoreTitle,
+            timeSignatureNumerator: timeSignatureNumerator,
+            timeSignatureDenominator: timeSignatureDenominator,
+            currentKeySignature: currentKeySignature,
+            notes: notes  // array of note objects
+        };
+
+        const backendUrl = location.hostname === "localhost" 
+        ? "http://localhost:5000" 
+        : "hardcoded-backend-url"; // not ideal but since the semester is nearly over, this is fine.  
+        if (name) {
+            try {
+                axios.post(backendUrl+"/store_composition", {
+                    composition: composition
+                },         
+                { withCredentials: true }
+                )
+                .then(response => {
+                    console.log('Composition saved:', response.data);
+                    alert("Composition saved successfully!");
+                })
+                .catch(error => {
+                    console.error('Error saving composition:', error);
+                    alert("Error saving composition.");
+                });
+            } catch (error) {
+                console.error('Error:', error);
+            }
+
+        } else {
+            alert("Please enter a name to save the composition.");
+        }
+        });
+        
+        document.getElementById('fetch-composition').addEventListener('click', () => {
+        const name = document.getElementById('fetch-name').value;
+        const backendUrl = location.hostname === "localhost" 
+        ? "http://localhost:5000" 
+        : "hardcoded-backend-url"; // not ideal but since the semester is nearly over, this is fine.  
+        if (name) {
+            try {
+                axios.get(backendUrl+"/get_compositions", { withCredentials: true }
+                )
+                .then(response => {
+                    console.log('Composition fetched:', response.data);
+                    const data = response.data.composition;
+                    scoreTitle = data.scoreTitle;
+                    timeSignatureNumerator = data.timeSignatureNumerator;
+                    timeSignatureDenominator = data.timeSignatureDenominator;
+                    currentKeySignature = data.currentKeySignature;
+                    notes = data.notes;
+                    //document.getElementById('score-title').value = scoreTitle;
+                    //document.getElementById('numerator').value = timeSignatureNumerator;
+                    //document.getElementById('denominator').value = timeSignatureDenominator;
+                    alert("Composition fetched successfully!");
+                })
+                .catch(error => {
+                    console.error('Error saving composition:', error);
+                    alert("Error saving composition.");
+                });
+            } catch (error) {
+                console.error('Error:', error);
+            }
+
+        } else {
+            alert("Please enter a name to fetch composition.");
+        }
+        });
+
 
         // Define accidentals for sharp and flat handling
         const halfSteps = {
