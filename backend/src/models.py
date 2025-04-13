@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask import jsonify
+from sqlalchemy import JSON
 
 db = SQLAlchemy()
 
@@ -14,7 +15,14 @@ class User(db.Model):
 class Composition(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    composition = db.Column(db.String(120), nullable=False)
+    composition = db.Column(JSON, nullable=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'user_id': self.user_id,
+            'composition': self.composition
+        }
 
 # Database Interactions. 
 def addUser(username, hashed_password, email):
@@ -138,4 +146,4 @@ def getCompositions_byUserId(userId):
     '''
 
     compositions = Composition.query.filter_by(user_id=userId).all()
-    return compositions
+    return [composition.to_dict() for composition in compositions]

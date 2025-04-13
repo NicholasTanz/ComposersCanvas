@@ -186,3 +186,30 @@ def register_routes(app : Flask):
 
         # return the compositions to the user
         return jsonify([composition.composition for composition in compositions]), 200
+
+    # this route will be used to accept just one composition and return it to the user.
+    @app.route('/get_composition', methods=['POST'])
+    def get_composition():
+        # this assumes that the user is authenticated and the json web token validation
+        # has already been done (/check-auth route).
+
+        # get the data from the request
+        data = request.get_json()
+        compositionId = data.get('name')
+
+        # simple validation
+        if not compositionId:
+            return jsonify({"message": "Composition ID is required"}), 400
+        
+        # get the composition from the database - we also need the user_id of the user who created the composition.
+        token = request.cookies.get('jwt')
+        decoded = jwt.decode(token, str(os.getenv("SECRET_KEY")), algorithms=["HS256"])
+        userId = getUserId_FromUsername(decoded["username"])
+
+        compositions = getCompositions_byUserId(userId)
+        # check if the composition exists
+        for comp in compositions:
+            if comp["composition"]["name"] == compositionId:
+                return jsonify({"composition": comp["composition"]}), 200
+
+        return jsonify({"message": "Composition not found"}), 404
