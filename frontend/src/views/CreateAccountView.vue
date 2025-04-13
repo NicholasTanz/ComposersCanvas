@@ -30,10 +30,10 @@ const handleSubmit = async (event) => {
     username.value = "";
     password.value = "";
     email.value = "";
-    response.value = res.data;
+    response.value = res.data.message;
   } catch (error) {
     console.error("Error:", error.response?.data || error.message);
-    response.value = "Error: " + (error.response?.data?.error || error.message);
+    response.value = "Error: " + (error.response?.data?.message || error.message);
   }
 };
 </script>
@@ -41,7 +41,7 @@ const handleSubmit = async (event) => {
 <template>
     <div class="container">
       <Navbar />
-      <h2>Create Account</h2>
+      <h2>Create Account</h2>    
       <form @submit="handleSubmit">
         <div>
           <label for="username">Username:</label>
@@ -57,6 +57,12 @@ const handleSubmit = async (event) => {
         </div>
         <button type="submit" class="btn-primary">Submit</button>
       </form>
+      <div 
+        v-if="response" 
+        :class="['alert', response.startsWith('Error:') ? 'alert-danger' : 'alert-success']"
+      >
+        {{ response }}
+      </div>
     </div>
 </template>
 
@@ -127,5 +133,25 @@ form {
 .btn-primary:hover {
   background: #2563eb;
   transform: scale(1.05);
+}
+
+.alert {
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 4px;
+  font-weight: 500;
+  text-align: center;
+}
+
+.alert-danger {
+  background-color: #f8d7da;
+  color: #842029;
+  border: 1px solid #f5c2c7;
+}
+
+.alert-success {
+  background-color: #d1e7dd;
+  color: #0f5132;
+  border: 1px solid #badbcc;
 }
 </style>

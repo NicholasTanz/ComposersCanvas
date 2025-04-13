@@ -74,7 +74,7 @@ def register_routes(app : Flask):
         # Check if the user exists
         user = checkUserExists(username)
         if not user:
-            return jsonify({"message": "Invalid credentials"}), 401
+            return jsonify({"message": "User does not exist"}), 401
         
         # Check if the password is correct
         if not check_password_hash(user.password, password):

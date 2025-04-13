@@ -88,7 +88,7 @@ class TestLogin:
         response = requests.post(URL, json=payload, headers=headers)
         
         assert response.status_code == 401
-        assert response.json()["message"] == "Invalid credentials"
+        assert response.json()["message"] == "User does not exist"
         assert "token" not in response.json()
     
 
