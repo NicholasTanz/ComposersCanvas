@@ -167,14 +167,9 @@ def register_routes(app : Flask):
         decoded = jwt.decode(token, str(os.getenv("SECRET_KEY")), algorithms=["HS256"])
         userId = getUserId_FromUsername(decoded["username"])
 
-        # add logic to check if the composition already exists in the database.
-        # if it does exist, we will update it instead of creating a new one.
         response = storeComposition(composition, userId)
-
-        if response[1] != 200:
-            return response
+        return response
         
-        return jsonify({"message": "Composition stored successfully"}), 200
 
     # this route will be used to accept all available compositions and return them to the user.
     @app.route('/get_compositions', methods=['GET'])

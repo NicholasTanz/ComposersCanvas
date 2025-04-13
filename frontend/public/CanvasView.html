@@ -368,10 +368,10 @@
             </div>
           </div>
         </div>
-        <div id="save-fetch-container" style="margin-top: 20px; padding: 10px;">
+        <div id="save-fetch-container" style="margin-top: 20px; padding: 10px; width: 350px;">
             <!-- Save Composition -->
             <div class="input-group">
-              <label for="save-name">Save Composition As:</label>
+              <label for="save-name">Save Composition:</label>
               <input type="text" id="save-name" placeholder="Enter composition name" />
               <button id="save-composition">Save</button>
             </div>
@@ -429,7 +429,7 @@
 
         const backendUrl = location.hostname === "localhost" 
         ? "http://localhost:5000" 
-        : "hardcoded-backend-url"; // not ideal but since the semester is nearly over, this is fine.  
+        : "https://backend-991441480624.us-central1.run.app"; // not ideal but since the semester is nearly over, this is fine.  
         if (name) {
             try {
                 axios.post(backendUrl+"/store_composition", {
@@ -458,7 +458,7 @@
         const name = document.getElementById('fetch-name').value;
         const backendUrl = location.hostname === "localhost" 
         ? "http://localhost:5000" 
-        : "https://frontend-991441480624.us-central1.run.app"; // not ideal but since the semester is nearly over, this is fine.  
+        : "https://backend-991441480624.us-central1.run.app"; // not ideal but since the semester is nearly over, this is fine.  
         if (name) {
             try {
                 axios.post(backendUrl+"/get_composition",{
