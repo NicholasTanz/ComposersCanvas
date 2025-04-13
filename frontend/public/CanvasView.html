@@ -420,10 +420,10 @@
         const name = document.getElementById('save-name').value;
         const composition = {
             name: document.getElementById('save-name').value,
-            scoreTitle: scoreTitle,
-            timeSignatureNumerator: timeSignatureNumerator,
-            timeSignatureDenominator: timeSignatureDenominator,
-            currentKeySignature: currentKeySignature,
+            scoreTitle: document.getElementById('score-title').value,
+            timeSignatureNumerator: document.getElementById("numerator").value.trim(),
+            timeSignatureDenominator: document.getElementById("denominator").value.trim(),
+            currentKeySignature:  document.getElementById("key-signature").value.trim(),
             notes: notes  // array of note objects
         };
 
@@ -458,7 +458,7 @@
         const name = document.getElementById('fetch-name').value;
         const backendUrl = location.hostname === "localhost" 
         ? "http://localhost:5000" 
-        : "hardcoded-backend-url"; // not ideal but since the semester is nearly over, this is fine.  
+        : "https://frontend-991441480624.us-central1.run.app"; // not ideal but since the semester is nearly over, this is fine.  
         if (name) {
             try {
                 axios.post(backendUrl+"/get_composition",{
@@ -474,16 +474,16 @@
                     timeSignatureDenominator = data.timeSignatureDenominator;
                     currentKeySignature = data.currentKeySignature;
                     notes = data.notes;
-                    //document.getElementById('score-title').value = scoreTitle;
-                    //document.getElementById('numerator').value = timeSignatureNumerator;
-                    //document.getElementById('denominator').value = timeSignatureDenominator;
+                    renderNotes(); 
+                    
                     alert("Composition fetched successfully!");
                 })
                 .catch(error => {
-                    console.error('Error saving composition:', error);
-                    alert("Error saving composition.");
+                    console.error('Error fetching composition:', error);
+                    alert("Error fetching composition.");
                 });
-            } catch (error) {
+            } 
+            catch (error) {
                 console.error('Error:', error);
             }
 

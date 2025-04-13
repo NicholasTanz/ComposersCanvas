@@ -161,9 +161,14 @@ def register_routes(app : Flask):
         
         # store the composition in the database - we also the need the user_id of the user who created the composition.
         token = request.cookies.get('jwt')
+        if not token:
+            return jsonify({"message": "Unauthorized - please login or create an account."}), 401
+
         decoded = jwt.decode(token, str(os.getenv("SECRET_KEY")), algorithms=["HS256"])
         userId = getUserId_FromUsername(decoded["username"])
 
+        # add logic to check if the composition already exists in the database.
+        # if it does exist, we will update it instead of creating a new one.
         response = storeComposition(composition, userId)
 
         if response[1] != 200:
@@ -203,6 +208,9 @@ def register_routes(app : Flask):
         
         # get the composition from the database - we also need the user_id of the user who created the composition.
         token = request.cookies.get('jwt')
+        if not token:
+            return jsonify({"message": "Unauthorized - please login or create an account."}), 401
+
         decoded = jwt.decode(token, str(os.getenv("SECRET_KEY")), algorithms=["HS256"])
         userId = getUserId_FromUsername(decoded["username"])
 
