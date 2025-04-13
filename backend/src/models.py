@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask import jsonify
-from sqlalchemy import JSON, String, cast
+from sqlalchemy import JSON
 db = SQLAlchemy()
 
 
