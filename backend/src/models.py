@@ -80,6 +80,13 @@ def removeUser(username):
     
     '''
     try:
+        # also need to remove all compositions by the user. 
+        # Since the user_id is a foreign key in the Composition table.
+        compositions = Composition.query.filter_by(user_id=getUserId_FromUsername(username)).all()
+        for comp in compositions:
+            db.session.delete(comp)
+        db.session.commit()
+
         user = User.query.filter_by(username=username).first()
         db.session.delete(user)
         db.session.commit()

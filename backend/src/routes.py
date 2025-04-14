@@ -153,7 +153,7 @@ def register_routes(app : Flask):
 
         # get the data from the request
         data = request.get_json()
-        composition = data.get('composition') # we assume the composition is stored as an array of notes.
+        composition = data.get('composition') # we assume the composition is a json object.
 
         # simple validation
         if not composition:
@@ -185,7 +185,7 @@ def register_routes(app : Flask):
         compositions = getCompositions_byUserId(userId)
 
         # return the compositions to the user
-        return jsonify([composition.composition for composition in compositions]), 200
+        return jsonify([composition["composition"] for composition in compositions]), 200
 
     # this route will be used to accept just one composition and return it to the user.
     @app.route('/get_composition', methods=['POST'])

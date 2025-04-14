@@ -103,3 +103,48 @@ class TestRegister:
         response = requests.post(URL, json=payload, headers=headers)
         assert response.status_code == 400
         assert response.json()["message"] == "Username or email already taken"
+
+    def test_invalidRegistration_ExistingEmail(self):
+        payload = {
+            "username": "another_user",
+            "password": PASSWORD,
+            "email": EMAIL
+        }
+
+        headers = {
+            "Content-Type": "application/json"
+        }
+
+        response = requests.post(URL, json=payload, headers=headers)
+        assert response.status_code == 200
+
+        # now try to register the same email with a different user
+        payload["username"] = USER
+        response = requests.post(URL, json=payload, headers=headers)
+        assert response.status_code == 400
+        assert response.json()["message"] == "Username or email already taken"
+
+        # remove the user we just created
+        payload = {
+            "username": "another_user",
+            "password": PASSWORD
+        }
+
+        deletion_response = requests.post("http://localhost:5000/delete_user", json=payload, headers=headers)
+        assert deletion_response.status_code == 200
+        assert deletion_response.json()["message"] == "User removed successfully"
+
+    def test_invalidRegistration_WeakPassword(self):
+        payload = {
+            "username": USER,
+            "password": "weak",
+            "email": EMAIL
+        }
+
+        headers = {
+            "Content-Type": "application/json"
+        }
+
+        response = requests.post(URL, json=payload, headers=headers)
+        assert response.status_code == 400
+        assert response.json()["message"] == "Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number"
