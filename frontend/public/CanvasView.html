@@ -511,7 +511,7 @@
                 context.setFont('Arial', 14, 'normal').fillText(eq, 20, 85);
                 context.setFont('Arial', 14, 'normal').fillText(tempo, 35, 84);
             } else {
-                
+                // Page; Not PDF here
                 context.setFont('Arial', 20, 'bold').fillText(scoreTitle, centerX, 30);
 
                 context.setFont('Arial', 24, 'normal').fillText(tempoNote, 3, 30);
@@ -1115,7 +1115,11 @@
         });
         // Tempo Changes
         document.getElementById('set-tempo').addEventListener('click', function() {
-            window.tempoInt = document.getElementById('tempo').value;
+            if(document.getElementById('tempo').value == undefined) {
+                console.log("Tempo is undefined");
+            } else {
+                window.tempoInt = document.getElementById('tempo').value;
+            }
         });
 
         renderNotes();
@@ -1124,8 +1128,6 @@
     <script>
         document.getElementById("doc-gen").addEventListener("click", () => {
             const staves = document.getElementById("my-stave");
-            //const title = document.getElementById("title");
-            //const tempo = document.getElementById("tempo");
             const prevStaff = staves.style.border;
             staves.style.border = 'none';
 
@@ -1139,7 +1141,7 @@
             renderNotes(pdf = true);
             html2pdf().from(staves).set(staffOpt).toPdf().get('pdf').then(function (pdf) {
                 window.open(pdf.output('bloburl'), '_blank');
-                setTimeout(() => {              // For handling with elements to be shown/hidden in the PDF
+                setTimeout(() => {                   // For handling with elements to be shown/hidden in the PDF
                     staves.style.border = prevStaff; // For showing the border later
                     renderNotes();
                 }, 1);

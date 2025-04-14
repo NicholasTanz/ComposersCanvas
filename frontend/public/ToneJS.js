@@ -3,12 +3,11 @@
 //import * as Tone from 'tone';
 
 // ToDo:
-// getDuration: Add on time signature.
-// stopTime: Add time signature.
-// Inside playMusic, the tempo. change to a slider.
-// Pause Capability? Difficult. Same with scrubbing
-// Add tempo slider and a textbox with it.
-// PDF: Add capability for names and such. Align it correctly as well.
+// getDuration: Add on time signature. Unneeded
+// stopTime: Add time signature. 
+// Inside playMusic, the tempo. change to a slider. (Not A Slider, but done)
+// Pause Capability? Difficult. Same with scrubbing (Not implemented yet. Will probably not implement by end of sem)
+// PDF: Add capability for names and such. Align it correctly as well. (Done initially. Can keep editing)
 
 
 // Create a synth and connect it to the main output
@@ -99,15 +98,14 @@ Tone.getContext().rawContext.onstatechange = () => {
 
 // Example sequence: [time, note, duration]
 
-// CURRENTLY, TIME SIGNATURE IS 4/4. This is gonna be a pain to change later.
-function stopTime (sequence){
+function stopTime (sequence, timeSignatureNum, timeSignatureDenom){
     let lastNote = sequence[sequence.length - 1]; // We need 0 and 2.
 
     const parts = lastNote[0].split(':');
     const duration = lastNote[2];
 
-    const sixteenthsPerBeat = 4;
-    const beatsPerMeasure = 4;
+    const sixteenthsPerBeat = 16 / timeSignatureDenom;             
+    const beatsPerMeasure = timeSignatureNum;
 
     // Parse measures, beats, and sixteenths
     var measures = parseInt(parts[0]);
@@ -117,12 +115,14 @@ function stopTime (sequence){
     //console.log(duration);
     let durationInSixteenths = 0;
 
+    // Pretty sure this is correct. Make sure to double check with musical people xD
+    // Used to use sixteenths per beat, but that is wrong.
     if (duration === "1n") {
-        durationInSixteenths = 4 * beatsPerMeasure;
+        durationInSixteenths = 16
     } else if (duration === "2n.") {
-        durationInSixteenths = 3 * beatsPerMeasure;
+        durationInSixteenths = 12;
     } else if (duration === "2n") {
-        durationInSixteenths = 2 * beatsPerMeasure;
+        durationInSixteenths = 8;
     } else if (duration === "4n") {
         durationInSixteenths = 4;
     } else if (duration === "8n") {
@@ -187,7 +187,7 @@ async function playMusic() {
     part.start(0);
     part.loop = 0;
 
-    const lastNoteTime = stopTime(sequence);
+    const lastNoteTime = stopTime(sequence, window.timeSignNum, window.timeSignDenom);
     console.log("Last note time:", lastNoteTime);
     sequence.push([lastNoteTime, null, "4n"]);
     console.log(sequence);
@@ -261,22 +261,24 @@ function convertVtoT(vArray, timeSignatureNum, timeSignatureDenom) {
         // Add note to tArray
         tArray.push([`${currentTime[0]}:${currentTime[1]}:${currentTime[2]}`, key, duration]);
 
-        if (timeSignatureNum === undefined || timeSignatureDenom === undefined) {
+        if (timeSignatureNum === undefined){
             timeSignatureNum = 4;
+        }
+        if (timeSignatureDenom === undefined) {
             timeSignatureDenom = 4;
         }
 
         // Update time
         console.log("Time Signature Num/Denom:", timeSignatureNum, timeSignatureDenom);
+       
         let beatsPerMeasure = parseInt(timeSignatureNum);
-        // For this below, this will change based on the bottom number in the time signature.
-        // For now it is 4, but if it is 2 it will have to be 8. 8 -> 2, 16 -> 1, etc. So 16 / Number.
-        let sixteenthsPerBeat = 16 / parseInt(timeSignatureDenom); // 4 sixteenths in a beat
+        let sixteenthsPerBeat = 16 / parseInt(timeSignatureDenom);
+       
         console.log(sixteenthsPerBeat);
         let durationInSixteenths = {
-            "1n": 4 * beatsPerMeasure,
-            "2n.": 3 * beatsPerMeasure,
-            "2n": 2 * beatsPerMeasure,
+            "1n": 16,
+            "2n.": 12,
+            "2n": 8,
             "4n": 4,
             "8n": 2,
             "16n": 1
