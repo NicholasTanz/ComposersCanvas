@@ -165,3 +165,21 @@ class TestStoreComposition:
         response_store_comp = requests.post(URL_store, json=payload, headers=headers)
         assert response_store_comp.status_code == 401
         assert response_store_comp.json()["message"] == "Unauthorized - please login or create an account."
+    
+    def test_invalid_fetch_composition_not_logged_in(self):
+        # test invalid fetch for all compositions. 
+        response_get_comps = requests.get(URL_get)
+        assert response_get_comps.status_code == 401
+        assert response_get_comps.json()["message"] == "Unauthorized - please login or create an account."
+
+        # test invalid fetch for one composition.
+        payload = {
+            "name": "example_composition"
+        }
+        headers = {
+            "Content-Type": "application/json"
+        }
+
+        response_get_comp = requests.post("http://localhost:5000/get_composition", json=payload, headers=headers)
+        assert response_get_comp.status_code == 401
+        assert response_get_comp.json()["message"] == "Unauthorized - please login or create an account."

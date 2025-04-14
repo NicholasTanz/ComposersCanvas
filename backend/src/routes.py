@@ -179,6 +179,9 @@ def register_routes(app : Flask):
 
         # get all compositions from the database
         token = request.cookies.get('jwt')
+        if not token:
+            return jsonify({"message": "Unauthorized - please login or create an account."}), 401
+        
         decoded = jwt.decode(token, str(os.getenv("SECRET_KEY")), algorithms=["HS256"])
         userId = getUserId_FromUsername(decoded["username"])
 
