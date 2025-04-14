@@ -23,6 +23,16 @@ class TestRegister:
 
         _ = requests.post("http://localhost:5000/register", json=payload, headers=headers)
 
+        yield  # This will run the test
+
+        # After each test, attempt to delete the user from the database.
+        payload = {
+            "username": USER,
+            "password": PASSWORD,
+        }
+
+        _ = requests.post(URL, json=payload, headers=headers)
+
     def test_validUserDeletion(self):
         payload = {
             "username": USER,

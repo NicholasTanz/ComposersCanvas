@@ -132,13 +132,7 @@ class TestStoreComposition:
         assert response_get_comps.status_code == 200
         assert response_get_comps.json()[0]["scoreTitle"] == payload["composition"]["scoreTitle"]
 
-        # delete the user from the database.
-        payload = {
-            "username": USER,
-            "password": PASSWORD
-        }
 
-    
     def test_invalid_store_composition_no_composition(self):
         # test invalid store composition - no composition provided.
         payload = {
@@ -151,12 +145,6 @@ class TestStoreComposition:
         response_store_comp = requests.post(URL_store, json=payload, headers=headers)
         assert response_store_comp.status_code == 400
         assert response_store_comp.json()["message"] == "Composition is required"
-
-        # always delete the user from the database after the test.
-        payload = {
-            "username": USER,
-            "password": PASSWORD
-        }
     
     def test_invalid_store_composition_not_logged_in(self):
         # test invalid store composition - not logged in.
@@ -177,8 +165,3 @@ class TestStoreComposition:
         response_store_comp = requests.post(URL_store, json=payload, headers=headers)
         assert response_store_comp.status_code == 401
         assert response_store_comp.json()["message"] == "Unauthorized - please login or create an account."
-
-        payload = {
-            "username": USER,
-            "password": PASSWORD
-        }
