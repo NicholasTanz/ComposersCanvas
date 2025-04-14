@@ -2,6 +2,15 @@
 // Make sure Tone is installed from npm (?)
 //import * as Tone from 'tone';
 
+// ToDo:
+// getDuration: Add on time signature.
+// stopTime: Add time signature.
+// Inside playMusic, the tempo. change to a slider.
+// Pause Capability? Difficult. Same with scrubbing
+// Add tempo slider and a textbox with it.
+// PDF: Add capability for names and such. Align it correctly as well.
+
+
 // Create a synth and connect it to the main output
 const synth = new Tone.Synth().toDestination();
 // const clock = new Tone.Clock(time => {
@@ -13,7 +22,7 @@ function autoRestartTone() {
         Tone.start().then(() => console.log("Tone.js restarted automatically!"));
     }
 }
-
+/*
 function getDuration(timeString, duration, tempo) {
     // Split the string by colon
     const parts = timeString.split(':');
@@ -48,7 +57,7 @@ function getDuration(timeString, duration, tempo) {
 
     return Math.ceil(seconds);
 }
-
+*/
 // Listen for state changes and restart if needed
 Tone.getContext().rawContext.onstatechange = () => {
     if (Tone.getContext().rawContext.state === "suspended") {
@@ -136,7 +145,7 @@ function stopTime (sequence){
         measures += 1;
     }
     //console.log(sixteenths);
-    sixteenths += 1;
+    sixteenths += 0;
 
     const timeToStop = `${measures}:${beats}:${sixteenths}`;
     console.log(timeToStop);
@@ -145,9 +154,11 @@ function stopTime (sequence){
 
 async function playMusic() {
 
-    sequence = convertVtoT(window.vexNotes);
+    sequence = convertVtoT(window.vexNotes, window.timeSignNum, window.timeSignDenom);
+    console.log(sequence);
 
-    Tone.getTransport().stop(); // This fixed it holy crap.
+    synth.volume.value = 0; // Unmute the synth
+    Tone.getTransport().stop(); // This fixed it holy crap. This doesn't allow for pausing nicely though.
     Tone.getTransport().position = "0:0:0"; // Reset transport to start
     Tone.getTransport().cancel();
 
@@ -168,23 +179,26 @@ async function playMusic() {
 
     // Start the transport and the part
     const transport = Tone.getTransport(); // Can be removed.
-    
-    transport.bpm.value = 120; //tempoSlider.value; // Set the tempo
+    if (window.tempoInt == undefined) {
+        transport.bpm.value = 120; // Default tempo
+    } else {
+        transport.bpm.value = window.tempoInt; // Set the tempo
+    }
     part.start(0);
     part.loop = 0;
-    transport.start();
 
     const lastNoteTime = stopTime(sequence);
-    sequence.append([lastNoteTime, null, "4n"]);
-    //console.log(sequence);
-    transport.scheduleOnce((lnt) => {
-        console.log(lnt)
-        transport.stop(lnt);
+    console.log("Last note time:", lastNoteTime);
+    sequence.push([lastNoteTime, null, "4n"]);
+    console.log(sequence);
+
+    transport.start();
+
+    transport.schedule((lnt) => {
+        // Reset transport to end
+        synth.volume.value = -Infinity; // Mute the synth
         console.log("Transport stopped after last note.");
     }, lastNoteTime);
-
-    //console.log(sequence);
-    //console.log(window.vexNotes);
 
 }
 
@@ -204,7 +218,9 @@ function pauseMusic() {
 //console.log(vexSequence);
 
 
-function convertVtoT(vArray, timeSignature = "4/4") { // Add rests and shi...
+function convertVtoT(vArray, timeSignatureNum, timeSignatureDenom) { 
+    // Left is Vex, right is Tone. 
+    // This will have to be changed for time signatures. (Or not; double check sixteenths below)
     const noteDurations = {
         "w": "1n",
         "hd": "2n.",
@@ -245,10 +261,18 @@ function convertVtoT(vArray, timeSignature = "4/4") { // Add rests and shi...
         // Add note to tArray
         tArray.push([`${currentTime[0]}:${currentTime[1]}:${currentTime[2]}`, key, duration]);
 
-        // Update time
-        let beatsPerMeasure = parseInt(timeSignature.split("/")[0]);
-        let sixteenthsPerBeat = 4; // 4 sixteenths in a beat
+        if (timeSignatureNum === undefined || timeSignatureDenom === undefined) {
+            timeSignatureNum = 4;
+            timeSignatureDenom = 4;
+        }
 
+        // Update time
+        console.log("Time Signature Num/Denom:", timeSignatureNum, timeSignatureDenom);
+        let beatsPerMeasure = parseInt(timeSignatureNum);
+        // For this below, this will change based on the bottom number in the time signature.
+        // For now it is 4, but if it is 2 it will have to be 8. 8 -> 2, 16 -> 1, etc. So 16 / Number.
+        let sixteenthsPerBeat = 16 / parseInt(timeSignatureDenom); // 4 sixteenths in a beat
+        console.log(sixteenthsPerBeat);
         let durationInSixteenths = {
             "1n": 4 * beatsPerMeasure,
             "2n.": 3 * beatsPerMeasure,
@@ -274,7 +298,7 @@ function convertVtoT(vArray, timeSignature = "4/4") { // Add rests and shi...
 
 // const vexToToneArr = convertVtoT(vexSequence, "4/4");
 // console.log(vexToToneArr);
-let sequence = convertVtoT(window.vexNotes);
+let sequence = convertVtoT(window.vexNotes, window.timeSignNum, window.timeSignDenom);
 /*
 const oldSequence = [
     [0, "C4", "4n"],      // Play C4 for a quarter note at time 0
@@ -286,3 +310,5 @@ const oldSequence = [
 
 document.getElementById('play-button').addEventListener('click', playMusic);
 document.getElementById('pause-button').addEventListener('click', pauseMusic);
+// Add a slider here for tempo.
+// PDF stuff is inside CanvasView, so change it there.

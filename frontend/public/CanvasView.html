@@ -364,6 +364,11 @@
                 </div>
                 <button id="update-time">Set Time Signature</button>
                 <button id="doc-gen">Generate Document</button> <!-- Temp Spot for PDF Gen Button -->
+            <div class="input-group">
+                <label for="tempo">Tempo:</label>
+                <input type="text" id="tempo" placeholder="120" />
+                <button id="set-tempo">Set Tempo</button>
+            </div>
             </div>
           </div>
         </div>
@@ -384,6 +389,9 @@
         // I'm so sorry
         
         let = scoreTitle = '';
+        let tempo = 120;
+        let eq = "=";
+        let tempoNote = "♩";
         let selectedNoteIndexes = []; // Track the selected note index
         let lastSelectedIndex = null;
         let dur = "q";
@@ -476,15 +484,44 @@
         }
 
         // Function to render the entire stave including multiple measures
-        function renderNotes() {
+        function renderNotes(pdf = false) {
             staveWidth = (70 * timeSignatureNumerator) + keysignum[currentKeySignature]*30; // Default width for measures
             context.clear();
             const titleWidth = context.measureText(scoreTitle).width;
             const centerX = (window.innerWidth - titleWidth) / 2;  // Center it on the screen
-            context.setFont('Arial', 18, 'bold').fillText(scoreTitle, centerX, 30);
+            
+            const noteMap = { // If not any of these, the quarter will be used.  
+                1: "𝅝",
+                2: "𝅗𝅥", 
+                4: "♩",
+                8: "♪",
+                16: "𝅘𝅥𝅯"
+            };
+            
+                tempoNote = noteMap[timeSignatureDenominator] || noteMap[4]; // Default to quarter note if not found
+
+            if(pdf) {
+
+                context.setFont('Arial', 25, 'bold');
+                const pdfTitleWidth = context.measureText(scoreTitle).width;
+                const pdfCenterX = (window.innerWidth - pdfTitleWidth) / 2;
+                context.fillText(scoreTitle, pdfCenterX, 30);
+
+                context.setFont('Arial', 24, 'normal').fillText(tempoNote, 3, 85);
+                context.setFont('Arial', 14, 'normal').fillText(eq, 20, 85);
+                context.setFont('Arial', 14, 'normal').fillText(tempo, 35, 84);
+            } else {
+                
+                context.setFont('Arial', 20, 'bold').fillText(scoreTitle, centerX, 30);
+
+                context.setFont('Arial', 24, 'normal').fillText(tempoNote, 3, 30);
+                context.setFont('Arial', 12, 'normal').fillText(eq, 20, 30);
+                context.setFont('Arial', 12, 'normal').fillText(tempo, 35, 29);
+            }
+
+
             notes = makeProperMeasure(notes);
             const measures = groupNotesIntoMeasures(notes); // Group notes into measures
-            
 
             adjustSVGHeight(totalRows);
 
@@ -501,8 +538,14 @@
                 }
                 measureWidths.push(measureStaveWidth)
                 const position = calculateStavePosition(measureWidths);
-                const stave = new VF.Stave(position.x, position.y, measureStaveWidth);
 
+                let pdfPosY = 0;
+                if(pdf) {
+                    pdfPosY = 75;
+                }
+                
+                const stave = new VF.Stave(position.x, position.y + pdfPosY, measureStaveWidth);
+                
                 if (firstMeasure) {
                     stave.addClef("treble").addTimeSignature(timeSignatureNumerator + "/" + timeSignatureDenominator).addKeySignature(currentKeySignature);
                     firstMeasure = false; // Set the flag to false after the first measure
@@ -563,7 +606,7 @@
                     }
 
                     // Highlight the selected note by comparing global index
-                    if (selectedNoteIndexes.includes(globalIndex)) {
+                    if (selectedNoteIndexes.includes(globalIndex) && !pdf) {
                         staveNote.setStyle({ fillStyle: "red", strokeStyle: "red" });
                     }
 
@@ -1041,6 +1084,8 @@
                     // Otherwise, update the time signature
                     timeSignatureNumerator = num;
                     timeSignatureDenominator = denom;
+                    window.timeSignNum = num;
+                    window.timeSignDenom = denom;
                     renderNotes(); // Re-render with the new time signature
                 }
             }
@@ -1050,6 +1095,10 @@
         });
         document.getElementById('update-title').addEventListener('click', function() {
             scoreTitle = document.getElementById('score-title').value;
+            renderNotes();  // Re-render the score with the new title
+        });
+        document.getElementById('set-tempo').addEventListener('click', function() {
+            tempo = document.getElementById('tempo').value;
             renderNotes();  // Re-render the score with the new title
         });
         
@@ -1064,35 +1113,88 @@
                 tutorialContainer.classList.remove('active');
             }
         });
+        // Tempo Changes
+        document.getElementById('set-tempo').addEventListener('click', function() {
+            window.tempoInt = document.getElementById('tempo').value;
+        });
+
         renderNotes();
     </script>
     <script src="ToneJS.js"></script>
     <script>
-        function documentGeneration () {
-            return 0
-        }
         document.getElementById("doc-gen").addEventListener("click", () => {
             const staves = document.getElementById("my-stave");
-
-            const prev = staves.style.border;
+            //const title = document.getElementById("title");
+            //const tempo = document.getElementById("tempo");
+            const prevStaff = staves.style.border;
             staves.style.border = 'none';
 
-            const options = {
-                margin: [0.75, 0.5, 0.75, 0.5],
+            const staffOpt = {
+                margin: [0.25, 0.5, 0.75, 0.5],
                 filename: 'sheet-music.pdf',
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { scale: 1, width: 1280 },
                 jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().from(staves).set(options).toPdf().get('pdf').then(function (pdf) {
+            renderNotes(pdf = true);
+            html2pdf().from(staves).set(staffOpt).toPdf().get('pdf').then(function (pdf) {
                 window.open(pdf.output('bloburl'), '_blank');
                 setTimeout(() => {              // For handling with elements to be shown/hidden in the PDF
-                    staves.style.border = prev; // For showing the border later
-                }, 1000);
+                    staves.style.border = prevStaff; // For showing the border later
+                    renderNotes();
+                }, 1);
             });
-            
-
         });
     </script>
+    <!---<script>
+        document.getElementById("doc-gen").addEventListener("click", () => {
+            const container = document.createElement("div");
+            container.id = "sheetMusicPDF";
+
+            const title = document.createElement("div");
+            title.innerText = document.getElementById("score-title").innerText;
+
+            console.log(title);
+
+            const tempo = document.createElement("div");
+            tempo.innerText = document.getElementById("tempo").innerText;
+
+            const staves = document.getElementById("my-stave");
+            //console.log(title);
+
+            const prevStaff = staves.style.border;
+            // const prevTitle = title.style.border;
+            // const prevTitleFont = title.style.fontSize;
+            // const prevTempo = tempo.style.border;
+
+            //title.style.fontSize = '90px';
+            staves.style.border = 'none'; 
+
+            container.appendChild(title);
+            container.appendChild(tempo);
+            container.appendChild(staves);
+
+            document.body.appendChild(container);
+            html2pdf()
+                .from(container)
+                .set({
+                    margin: 0.5,
+                    filename: 'sheet-music.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 1, width: 1280 },
+                    jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+                })
+                .toPdf().get('pdf').then(function (pdf) {
+                window.open(pdf.output('bloburl'), '_blank');
+                setTimeout(() => {              // For handling with elements to be shown/hidden in the PDF
+                    staves.style.border = prevStaff; // For showing the border later
+                    //title.style.display = 'none';
+                    //tempo.style.display = 'none';
+                }, 1000);
+
+
+            });
+        });
+    </script>-->
 </body>
 </html>
