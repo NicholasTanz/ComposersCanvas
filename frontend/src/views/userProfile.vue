@@ -11,6 +11,19 @@ const apiResponse = ref(null); // Stores API response
 const errorMessage = ref(null); // Stores error messages
 const savedCompositions = ref([]); // Stores fetched compositions
 
+
+const redirectTitle = ref("");
+function redirectToTargetPageWithTitle() {
+  if (!redirectTitle.value.trim()) {
+    alert("Please enter a title before continuing.");
+    return;
+  }
+
+  const encodedTitle = encodeURIComponent(redirectTitle.value);
+  window.location.href = `CanvasView.html?from=profile&title=${encodedTitle}`; // 
+}
+
+
 onMounted(() => {
   authStore.checkAuthStatus();
 });
@@ -89,6 +102,15 @@ async function fetchSavedCompositions() {
       
       <p v-else>No saved compositions found.</p>
     </section>
+
+    <!-- Redirect to another page  (need to add v-if auth, just testing now so blank)-->
+    <h2>Redirect with Title</h2>
+    <input v-model="redirectTitle" type="text" placeholder="Enter a title to pass" />
+    <button @click="redirectToTargetPageWithTitle" class="bg-green-500">
+      Go to Target Page with Title
+    </button>
+    
+
   </div>
 </template>
 

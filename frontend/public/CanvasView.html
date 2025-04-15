@@ -373,22 +373,12 @@
             </div>
           </div>
         </div>
-        <div id="save-fetch-container" style="margin-top: 20px; padding: 10px; width: 350px;">
-            <!-- Save Composition -->
-            <div class="input-group">
-              <label for="save-name">Save Composition:</label>
-              <input type="text" id="save-name" placeholder="Enter composition name" />
-              <button id="save-composition">Save</button>
-            </div>
-          
-            <!-- Fetch Composition -->
-            <div class="input-group" style="margin-top: 10px;">
-              <label for="fetch-name">Load Composition:</label>
-              <input type="text" id="fetch-name" placeholder="Enter composition name" />
-              <button id="fetch-composition">Load</button>
-            </div>
-          </div>
-
+        <!-- move this to score settings -->
+        <!-- Save Composition -->
+        <div class="input-group">
+            <label for="save-name">Save Composition:</label>
+            <button id="save-composition">Save</button>
+        </div>
         <div id="my-stave"></div>           
     <script>
         const VF = Vex.Flow;
@@ -423,22 +413,21 @@
         const tutorialBtn = document.getElementById('tutorial-btn');
         const tutorialContainer = document.getElementById('tutorial-container');
 
-        // logic for saving and fetching via backend api.
+        // logic for saving via backend api. 
         const backendUrl = location.hostname === "localhost" 
         ? "http://localhost:5000" 
         : "https://backend-991441480624.us-central1.run.app";        
-        
         document.getElementById('save-composition').addEventListener('click', () => {
-        const name = document.getElementById('save-name').value;
+        const name = document.getElementById('score-title').value;
         const composition = {
-            name: document.getElementById('save-name').value,
+            name: document.getElementById('score-title').value,
             scoreTitle: document.getElementById('score-title').value,
             timeSignatureNumerator: document.getElementById("numerator").value.trim(),
             timeSignatureDenominator: document.getElementById("denominator").value.trim(),
             currentKeySignature:  document.getElementById("key-signature").value.trim(),
+            tempo: document.getElementById('tempo').value / (document.getElementById("denominator").value / 4),
             notes: notes  // array of note objects
         };
-
         if (name) {
             try {
                 axios.post(backendUrl+"/store_composition", {
@@ -462,12 +451,17 @@
         }
         });
         
-        document.getElementById('fetch-composition').addEventListener('click', () => {
-        const name = document.getElementById('fetch-name').value;
-        if (name) {
+        // logic for fetching via backend api. (assumption is that user is coming from userProfile to Canvasview.)
+        // Parse the query string from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const from = urlParams.get('from');
+        const title = urlParams.get('title');
+        if (from === 'profile') {
+            console.log("User came from UserProfile.vue!");
+            console.log("Title:", title);
             try {
                 axios.post(backendUrl+"/get_composition",{
-                    name: document.getElementById('fetch-name').value
+                    name: title
                 },
                  { withCredentials: true }
                 )
@@ -479,6 +473,7 @@
                     timeSignatureDenominator = data.timeSignatureDenominator;
                     currentKeySignature = data.currentKeySignature;
                     notes = data.notes;
+                    tempo = data.tempo;
                     renderNotes(); 
                     
                     alert("Composition fetched successfully!");
@@ -486,16 +481,13 @@
                 .catch(error => {
                     console.error('Error fetching composition:', error);
                     alert("Error fetching composition: ensure you have saved your composition.");
-                });
+                }); 
             } 
             catch (error) {
                 console.error('Error:', error);
             }
 
-        } else {
-            alert("Please enter a name to fetch a composition.");
-        }
-        });
+        };
 
 
         // Define accidentals for sharp and flat handling
