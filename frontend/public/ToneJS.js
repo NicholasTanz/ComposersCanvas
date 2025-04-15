@@ -156,11 +156,22 @@ async function playMusic() {
 
     sequence = convertVtoT(window.vexNotes, window.timeSignNum, window.timeSignDenom);
     console.log(sequence);
+    const transport = Tone.getTransport(); // Can be removed.
 
     synth.volume.value = 0; // Unmute the synth
-    Tone.getTransport().stop(); // This fixed it holy crap. This doesn't allow for pausing nicely though.
-    Tone.getTransport().position = "0:0:0"; // Reset transport to start
-    Tone.getTransport().cancel();
+    transport.stop();
+    transport.position = "0:0:0"; // Reset transport to start
+    transport.cancel();
+    
+    let timeSig = [4, 4]; // Default time signature
+    if(window.timeSignNum == undefined || window.timeSignDenom == undefined) {
+        transport.timeSignature = [4, 4]; // Default time signature
+        console.log()
+    } else {
+        transport.timeSignature = [window.timeSignNum, window.timeSignDenom]; // Set time signature
+        timeSig = [window.timeSignNum, window.timeSignDenom];
+    }
+    
 
     await Tone.start(); // Ensure AudioContext is started
 
@@ -173,21 +184,22 @@ async function playMusic() {
 
         if (value.isLast) {
             part.stop();
-            console.log("Part stopped after last note.");
         }
     }, partData);
 
     // Start the transport and the part
-    const transport = Tone.getTransport(); // Can be removed.
     if (window.tempoInt == undefined) {
-        transport.bpm.value = 120; // Default tempo
+        const adjustedBPM = 120 / (timeSig[1] / 4);
+        transport.bpm.value = adjustedBPM; // Set the tempo
     } else {
-        transport.bpm.value = window.tempoInt; // Set the tempo
+        const adjustedBPM = window.tempoInt / ( timeSig[1] / 4);
+        transport.bpm.value = adjustedBPM; // Set the tempo
     }
+    print("Adjusted BPM:", transport.bpm.value);
     part.start(0);
     part.loop = 0;
 
-    const lastNoteTime = stopTime(sequence, window.timeSignNum, window.timeSignDenom);
+    const lastNoteTime = stopTime(sequence, timeSig[0], timeSig[1] );
     console.log("Last note time:", lastNoteTime);
     sequence.push([lastNoteTime, null, "4n"]);
     console.log(sequence);
