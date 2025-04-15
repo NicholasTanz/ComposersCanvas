@@ -5,8 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Interactive Staff Notes</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vexflow/4.2.5/vexflow-min.js"></script>    
-    <script src="https://unpkg.com/tone"></script>
+    <script src="https://unpkg.com/tone@15.0.4/build/Tone.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios@1.8.4/dist/axios.min.js"></script>
     <style>
         body {
             padding-top: 80px; /* More space for toolbar */
@@ -369,9 +370,15 @@
                 <input type="text" id="tempo" placeholder="120" />
                 <button id="set-tempo">Set Tempo</button>
             </div>
+            <!-- Save Composition -->
+            <div class="input-group">
+                <label for="save-name">Save Composition:</label>
+                <button id="save-composition">Save</button>
+            </div>
             </div>
           </div>
         </div>
+        <!-- move this to score settings -->
         <div id="my-stave"></div>           
     <script>
         const VF = Vex.Flow;
@@ -387,7 +394,7 @@
         ];
         
         // I'm so sorry
-        
+
         let = scoreTitle = '';
         let tempo = 120;
         let eq = "=";
@@ -405,6 +412,88 @@
         let totalRows = 1;
         const tutorialBtn = document.getElementById('tutorial-btn');
         const tutorialContainer = document.getElementById('tutorial-container');
+
+        // logic for saving via backend api. 
+        const backendUrl = location.hostname === "localhost" 
+        ? "http://localhost:5000" 
+        : "https://backend-991441480624.us-central1.run.app";        
+        document.getElementById('save-composition').addEventListener('click', () => {
+        const name = document.getElementById('score-title').value;
+        const scoreTitle = document.getElementById('score-title').value;
+        const timeSignatureNumerator = document.getElementById("numerator").value.trim();
+        const timeSignatureDenominator = document.getElementById("denominator").value.trim();
+        const currentKeySignature =  document.getElementById("key-signature").value.trim();
+        const tempo = document.getElementById('tempo').value / (document.getElementById("denominator").value / 4);
+        const composition = {
+            name: name,
+            scoreTitle: scoreTitle,
+            timeSignatureNumerator: timeSignatureNumerator,
+            timeSignatureDenominator: timeSignatureDenominator,
+            currentKeySignature:  currentKeySignature,
+            tempo: tempo,
+            notes: notes  // array of note objects
+        };
+        if (name && scoreTitle && timeSignatureNumerator && timeSignatureDenominator && currentKeySignature && tempo && notes) {
+            try {
+                axios.post(backendUrl+"/store_composition", {
+                    composition: composition
+                }, { withCredentials: true }
+                )
+                .then(response => {
+                    console.log('Composition saved:', response.data);
+                    alert("Composition saved successfully!");
+                })
+                .catch(error => {
+                    console.error('Error saving composition:', error);
+                    alert("Error saving composition: You must be logged in to save.");
+                });
+            } catch (error) {
+                console.error('Error:', error);
+            }
+
+        } else {
+            alert("Please enter all fields to save the composition. (title, time signature, key signature, and tempo.)");
+        }
+        });
+        
+        // logic for fetching via backend api. (assumption is that user is coming from userProfile to Canvasview.)
+        // Parse the query string from the URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const fromFetch = urlParams.get('from');
+        const titleFetch = urlParams.get('title');
+        if (fromFetch === 'profile') {
+            console.log("User came from userProfile.vue");
+            console.log("Title:", titleFetch);
+            try {
+                axios.post(backendUrl+"/get_composition",{
+                    name: titleFetch
+                },
+                 { withCredentials: true }
+                )
+                .then(response => {
+                    console.log('Composition fetched:', response.data);
+                    const data = response.data.composition;
+                    scoreTitle = data.scoreTitle;
+                    timeSignatureNumerator = data.timeSignatureNumerator;
+                    timeSignatureDenominator = data.timeSignatureDenominator;
+                    currentKeySignature = data.currentKeySignature;
+                    notes = data.notes;
+                    tempo = data.tempo;
+                    renderNotes(); 
+                    
+                    alert("Composition fetched successfully!");
+                })
+                .catch(error => {
+                    console.error('Error fetching composition:', error);
+                    alert("Error fetching composition: ensure you have saved your composition.");
+                }); 
+            } 
+            catch (error) {
+                console.error('Error:', error);
+            }
+
+        };
+
 
         // Define accidentals for sharp and flat handling
         const halfSteps = {

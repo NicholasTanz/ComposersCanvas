@@ -43,6 +43,12 @@ class TestLogin:
         assert auth_data["authenticated"]
         assert auth_data["user"] == payload["username"]
 
+        # test JWT token is cleared when logging out.
+        logout_response = requests.post("http://localhost:5000/logout", cookies=response.cookies)
+        assert logout_response.status_code == 200
+        assert "jwt" not in logout_response.cookies
+        assert logout_response.json()["message"] == "Logout successful"
+
 
     def test_invalidLogin_NoUsername(self):
         payload = {
@@ -88,7 +94,7 @@ class TestLogin:
         response = requests.post(URL, json=payload, headers=headers)
         
         assert response.status_code == 401
-        assert response.json()["message"] == "Invalid credentials"
+        assert response.json()["message"] == "User does not exist"
         assert "token" not in response.json()
     
 

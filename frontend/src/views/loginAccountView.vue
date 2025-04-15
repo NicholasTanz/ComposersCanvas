@@ -7,9 +7,7 @@ import { useAuthStore } from '@/stores/auth'; // Import the Pinia store
 const authStore = useAuthStore(); // Initialize store
 const username = ref('');
 const password = ref('');
-const email = ref('');
 const response = ref(null);
-const loginStatus = ref('');
 const submitted = ref(false);
 const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
@@ -20,7 +18,6 @@ const handleSubmit = async (event) => {
     const res = await axios.post(backendUrl+"/login", {
       username: username.value,
       password: password.value,
-      email: email.value
     }, {
       headers: {
         "Content-Type": "application/json",
@@ -32,13 +29,10 @@ const handleSubmit = async (event) => {
     await authStore.checkAuthStatus(); // Check if user is authenticated
     username.value = "";
     password.value = "";
-    email.value = "";
-    response.value = res.data;
-    loginStatus.value = "Login Successful!";
+    response.value = res.data.message;
   } catch (error) {
     console.error("Error:", error.response?.data || error.message);
-    response.value = "Error: " + (error.response?.data?.error || error.message);
-    loginStatus.value = "Login Failed!";
+    response.value = "Error: " + (error.response?.data?.message || error.message);
   }
 };
 </script>
@@ -59,20 +53,15 @@ const handleSubmit = async (event) => {
           <input type="password" id="password" v-model="password" required class="input-field" />
         </div>
 
-        <div>
-          <label for="email">Email:</label>
-          <input type="email" id="email" v-model="email" required class="input-field" />
-        </div>
-
         <button type="submit" class="btn-primary">Submit</button>
       </form>
-      <div v-if="submitted" class="status-container">
-      <h3>Login Status:</h3>
-      <p :class="{'text-green-500': loginStatus === 'Login successful!', 'text-red-500': loginStatus.includes('failed')}" class="status-message">
-        {{ loginStatus }}
-      </p>
-    </div>
-    </div>
+      <div 
+        v-if="response" 
+        :class="['alert', response.startsWith('Error:') ? 'alert-danger' : 'alert-success']"
+      >
+        {{ response }}
+      </div>
+</div>
 </template>
 
 <style scoped>
@@ -144,29 +133,23 @@ form {
   transform: scale(1.05);
 }
 
-/* Status Message */
-.status-container {
-  margin-top: 2rem;
+.alert {
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 4px;
+  font-weight: 500;
   text-align: center;
 }
 
-.status-title {
-  font-size: 1.25rem;
-  font-weight: bold;
-  color: #1d4ed8;
-  margin-bottom: 0.5rem;
+.alert-danger {
+  background-color: #f8d7da;
+  color: #842029;
+  border: 1px solid #f5c2c7;
 }
 
-.status-message {
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.text-green-500 {
-  color: #10b981; /* Tailwind emerald-500 */
-}
-
-.text-red-500 {
-  color: #ef4444; /* Tailwind red-500 */
+.alert-success {
+  background-color: #d1e7dd;
+  color: #0f5132;
+  border: 1px solid #badbcc;
 }
 </style>
