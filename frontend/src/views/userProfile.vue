@@ -10,7 +10,8 @@ const inputText = ref(""); // Stores user input
 const apiResponse = ref(null); // Stores API response
 const errorMessage = ref(null); // Stores error messages
 const savedCompositions = ref([]); // Stores fetched compositions
-
+const deleteUsername = ref('')
+const deletePassword = ref('')
 
 const redirectTitle = ref("");
 async function redirectToTargetPageWithTitle() {
@@ -40,22 +41,6 @@ onMounted(() => {
   authStore.checkAuthStatus();
 });
 
-async function sendTextToBackend() {
-  try {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL;
-    const response = await axios.post(`${backendUrl}/store_composition`, 
-      { composition: inputText.value },
-      { withCredentials: true } // Ensures cookies are sent with the request
-    );
-    apiResponse.value = response.data;
-    errorMessage.value = null;
-  } catch (error) {
-    console.error("Error sending data:", error);
-    apiResponse.value = null;
-    errorMessage.value = "Failed to send data to the API. Please try again.";
-  }
-}
-
 async function fetchSavedCompositions() {
   try {
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
@@ -66,6 +51,29 @@ async function fetchSavedCompositions() {
     errorMessage.value = "Failed to fetch saved compositions.";
   }
 }
+
+async function confirmDeleteAccount() {
+  if (deleteUsername.value.trim() === "" || deletePassword.value.trim() === "") {
+    alert("Please fill in both fields.");
+    return;
+  }
+
+  try {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    const response = await axios.post(`${backendUrl}/delete_user`, {
+      username: deleteUsername.value,
+      password: deletePassword.value
+    }, { withCredentials: true });
+
+    authStore.logout();
+    alert("Account deleted successfully.");
+      window.location.href = ""; // Redirect to the home page.
+  } catch (error) {
+    console.error("Error deleting account:", error);
+    alert("Failed to delete account. Please check your credentials.");
+  }
+}
+
 </script>
 
 <template>
@@ -73,56 +81,52 @@ async function fetchSavedCompositions() {
   <div>
     <h1>User Profile</h1>
     <p v-if="authStore.isAuthenticated">
-      You are logged in!
       <button @click="authStore.logout">Logout</button>
     </p>
-    
     <p v-else>
-      Please log in to view account details.
+      Please login to view your profile.
     </p>
     
-    <!-- testing save endpoint -->
-    <section v-if="authStore.isAuthenticated">
-      <h2>Test API Endpoint</h2>
-      <input v-model="inputText" type="text" placeholder="Enter some text"/>
-      <button @click="sendTextToBackend">
-        Send to Backend
-      </button>
+    <ul v-if = "authStore.isAuthenticated">
+  
+      <!-- fetch endpoint -->
+      <h2>your compositions: </h2>
+        <button @click="fetchSavedCompositions">
+          fetch saved compositions
+        </button>
       
-      <div v-if="apiResponse">
-        <strong>Response:</strong> {{ apiResponse }}
-      </div>
-      
-      <div v-if="errorMessage">
-        <strong>Error:</strong> {{ errorMessage }}
-      </div>
-    </section>
-    
-    <!-- testing fetch endpoint -->
-    <section v-if="authStore.isAuthenticated">
-      <h2>Your Saved Compositions</h2>
-      <button @click="fetchSavedCompositions">
-        View Saved Compositions
-      </button>
-      
-      <ul v-if="savedCompositions.length">
-        <li v-for="(composition, index) in savedCompositions" :key="index">
-          {{ composition }}
-        </li>
-      </ul>
-      
-      <p v-else>No saved compositions found.</p>
-    </section>
+        <ul v-if="savedCompositions.length">
+          <li v-for="(composition, index) in savedCompositions" :key="index">
+            {{ composition }}
+          </li>
+        </ul>
+        
+        <p v-else>No saved compositions found.</p>
 
-    <!-- Redirect to another page -->
-    <ul v-if ="authStore.isAuthenticated">
-    <h2>Redirect with Title</h2>
-    <input v-model="redirectTitle" type="text" placeholder="Enter a title to pass" />
-    <button @click="redirectToTargetPageWithTitle" class="bg-green-500">
-      Go to Target Page with Title
-    </button>
-  </ul>
-  </div>
+      <!-- Redirect to another page -->
+      <h2> Edit Composition </h2>
+        <input v-model="redirectTitle" type="text" placeholder="Enter a composition to edit"/>
+          <button @click="redirectToTargetPageWithTitle">
+            Edit Composition
+          </button>
+
+      <!-- Delete Account Section -->
+      <h2>Delete Account</h2>
+      <input
+        type="text"
+        v-model="deleteUsername"
+        placeholder="Re-enter your username"
+      />
+      <input
+        type="password"
+        v-model="deletePassword"
+        placeholder="Enter your password"
+      />
+      <button @click="confirmDeleteAccount">
+        Delete Account
+      </button>
+    </ul>
+</div>
 </template>
 
 <style scoped>
@@ -185,42 +189,6 @@ button {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease-in-out;
-}
-
-/* Specific button colors */
-button.bg-blue-500 {
-  background-color: #1d4ed8;
-  color: white;
-}
-
-button.bg-blue-500:hover {
-  background-color: #2563eb;
-}
-
-button.bg-green-500 {
-  background-color: #10b981;
-  color: white;
-}
-
-button.bg-green-500:hover {
-  background-color: #059669;
-}
-
-/* Response & Error boxes */
-.api-test div,
-.saved-compositions div {
-  max-width: 600px;
-  margin: 0 auto;
-}
-
-.bg-green-100 {
-  background-color: #d1fae5;
-  color: #065f46;
-}
-
-.bg-red-100 {
-  background-color: #fee2e2;
-  color: #991b1b;
 }
 
 .border {
