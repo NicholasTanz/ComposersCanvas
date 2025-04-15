@@ -2,13 +2,7 @@
 // Make sure Tone is installed from npm (?)
 //import * as Tone from 'tone';
 
-// ToDo:
-// getDuration: Add on time signature. Unneeded
-// stopTime: Add time signature. 
-// Inside playMusic, the tempo. change to a slider. (Not A Slider, but done)
-// Pause Capability? Difficult. Same with scrubbing (Not implemented yet. Will probably not implement by end of sem)
-// PDF: Add capability for names and such. Align it correctly as well. (Done initially. Can keep editing)
-
+// ToDo: All done.
 
 // Create a synth and connect it to the main output
 const synth = new Tone.Synth().toDestination();
@@ -166,11 +160,11 @@ async function playMusic() {
     let timeSig = [4, 4]; // Default time signature
     if(window.timeSignNum == undefined || window.timeSignDenom == undefined) {
         transport.timeSignature = [4, 4]; // Default time signature
-        console.log()
     } else {
         transport.timeSignature = [window.timeSignNum, window.timeSignDenom]; // Set time signature
         timeSig = [window.timeSignNum, window.timeSignDenom];
     }
+    console.log("Time Signature:", transport.timeSignature);
     
 
     await Tone.start(); // Ensure AudioContext is started
@@ -195,7 +189,7 @@ async function playMusic() {
         const adjustedBPM = window.tempoInt / ( timeSig[1] / 4);
         transport.bpm.value = adjustedBPM; // Set the tempo
     }
-    print("Adjusted BPM:", transport.bpm.value);
+    console.log("Adjusted BPM:", transport.bpm.value);
     part.start(0);
     part.loop = 0;
 
@@ -233,6 +227,16 @@ function pauseMusic() {
 function convertVtoT(vArray, timeSignatureNum, timeSignatureDenom) { 
     // Left is Vex, right is Tone. 
     // This will have to be changed for time signatures. (Or not; double check sixteenths below)
+
+    if (timeSignatureNum === undefined){
+        timeSignatureNum = 4;
+    }
+    if (timeSignatureDenom === undefined) {
+        timeSignatureDenom = 4;
+    }
+
+    const sixteenthsPerMeasure = parseInt(timeSignatureNum) * (16 / parseInt(timeSignatureDenom));
+
     const noteDurations = {
         "w": "1n",
         "hd": "2n.",
@@ -273,20 +277,13 @@ function convertVtoT(vArray, timeSignatureNum, timeSignatureDenom) {
         // Add note to tArray
         tArray.push([`${currentTime[0]}:${currentTime[1]}:${currentTime[2]}`, key, duration]);
 
-        if (timeSignatureNum === undefined){
-            timeSignatureNum = 4;
-        }
-        if (timeSignatureDenom === undefined) {
-            timeSignatureDenom = 4;
-        }
-
         // Update time
         console.log("Time Signature Num/Denom:", timeSignatureNum, timeSignatureDenom);
        
-        let beatsPerMeasure = parseInt(timeSignatureNum);
-        let sixteenthsPerBeat = 16 / parseInt(timeSignatureDenom);
-       
-        console.log(sixteenthsPerBeat);
+        // const beatsPerMeasure = parseInt(timeSignatureNum);
+        // const sixteenthsPerBeat = 16 / parseInt(timeSignatureDenom); Consider doing this as integer division. The program won't work well without a power of 2.
+        // 
+
         let durationInSixteenths = {
             "1n": 16,
             "2n.": 12,
@@ -296,13 +293,19 @@ function convertVtoT(vArray, timeSignatureNum, timeSignatureDenom) {
             "16n": 1
         }[duration];
 
-        currentTime[2] += durationInSixteenths;
-        while (currentTime[2] >= sixteenthsPerBeat) {
-            currentTime[2] -= sixteenthsPerBeat;
-            currentTime[1] += 1;
+        if(duration == "1n" && key == null) { 
+            durationInSixteenths = sixteenthsPerMeasure; // Whole rest will always be a measure.
         }
-        while (currentTime[1] >= beatsPerMeasure) {
-            currentTime[1] -= beatsPerMeasure;
+
+        currentTime[2] += durationInSixteenths;
+
+        // while (currentTime[2] >= 4) {
+        //     currentTime[2] -= 4;
+        //     currentTime[1] += 1;
+        // } Retired quarter notes. We only do sixteenths now.
+
+        while (currentTime[2] >= sixteenthsPerMeasure) {
+            currentTime[2] -= sixteenthsPerMeasure;
             currentTime[0] += 1;
         }
     });
@@ -324,5 +327,3 @@ const oldSequence = [
 
 document.getElementById('play-button').addEventListener('click', playMusic);
 document.getElementById('pause-button').addEventListener('click', pauseMusic);
-// Add a slider here for tempo.
-// PDF stuff is inside CanvasView, so change it there.
