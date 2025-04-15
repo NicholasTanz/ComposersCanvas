@@ -72,7 +72,6 @@ async function fetchSavedCompositions() {
   <Navbar />
   <div>
     <h1>User Profile</h1>
-    
     <p v-if="authStore.isAuthenticated">
       You are logged in!
       <button @click="authStore.logout">Logout</button>
@@ -115,14 +114,14 @@ async function fetchSavedCompositions() {
       <p v-else>No saved compositions found.</p>
     </section>
 
-    <!-- Redirect to another page  (need to add v-if auth, just testing now so blank)-->
+    <!-- Redirect to another page -->
+    <ul v-if ="authStore.isAuthenticated">
     <h2>Redirect with Title</h2>
     <input v-model="redirectTitle" type="text" placeholder="Enter a title to pass" />
     <button @click="redirectToTargetPageWithTitle" class="bg-green-500">
       Go to Target Page with Title
     </button>
-    
-
+  </ul>
   </div>
 </template>
 
