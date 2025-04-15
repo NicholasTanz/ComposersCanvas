@@ -419,17 +419,21 @@
         : "https://backend-991441480624.us-central1.run.app";        
         document.getElementById('save-composition').addEventListener('click', () => {
         const name = document.getElementById('score-title').value;
-        // could add stronger validation here. 
+        const scoreTitle = document.getElementById('score-title').value;
+        const timeSignatureNumerator = document.getElementById("numerator").value.trim();
+        const timeSignatureDenominator = document.getElementById("denominator").value.trim();
+        const currentKeySignature =  document.getElementById("key-signature").value.trim();
+        const tempo = document.getElementById('tempo').value / (document.getElementById("denominator").value / 4);
         const composition = {
-            name: document.getElementById('score-title').value,
-            scoreTitle: document.getElementById('score-title').value,
-            timeSignatureNumerator: document.getElementById("numerator").value.trim(),
-            timeSignatureDenominator: document.getElementById("denominator").value.trim(),
-            currentKeySignature:  document.getElementById("key-signature").value.trim(),
-            tempo: document.getElementById('tempo').value / (document.getElementById("denominator").value / 4),
+            name: name,
+            scoreTitle: scoreTitle,
+            timeSignatureNumerator: timeSignatureNumerator,
+            timeSignatureDenominator: timeSignatureDenominator,
+            currentKeySignature:  currentKeySignature,
+            tempo: tempo,
             notes: notes  // array of note objects
         };
-        if (name) {
+        if (name && scoreTitle && timeSignatureNumerator && timeSignatureDenominator && currentKeySignature && tempo && notes) {
             try {
                 axios.post(backendUrl+"/store_composition", {
                     composition: composition
@@ -448,7 +452,7 @@
             }
 
         } else {
-            alert("Please enter a name to save the composition.");
+            alert("Please enter all fields to save the composition. (title, time signature, key signature, and tempo.)");
         }
         });
         
