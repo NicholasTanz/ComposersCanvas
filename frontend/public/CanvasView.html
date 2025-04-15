@@ -454,14 +454,14 @@
         // logic for fetching via backend api. (assumption is that user is coming from userProfile to Canvasview.)
         // Parse the query string from the URL
         const urlParams = new URLSearchParams(window.location.search);
-        const from = urlParams.get('from');
-        const title = urlParams.get('title');
-        if (from === 'profile') {
-            console.log("User came from UserProfile.vue!");
-            console.log("Title:", title);
+        const fromFetch = urlParams.get('from');
+        const titleFetch = urlParams.get('title');
+        if (fromFetch === 'profile') {
+            console.log("User came from userProfile.vue");
+            console.log("Title:", titleFetch);
             try {
                 axios.post(backendUrl+"/get_composition",{
-                    name: title
+                    name: titleFetch
                 },
                  { withCredentials: true }
                 )

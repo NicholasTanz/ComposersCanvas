@@ -13,14 +13,26 @@ const savedCompositions = ref([]); // Stores fetched compositions
 
 
 const redirectTitle = ref("");
-function redirectToTargetPageWithTitle() {
+async function redirectToTargetPageWithTitle() {
   if (!redirectTitle.value.trim()) {
     alert("Please enter a title before continuing.");
     return;
   }
 
-  const encodedTitle = encodeURIComponent(redirectTitle.value);
-  window.location.href = `CanvasView.html?from=profile&title=${encodedTitle}`; // 
+  try {
+    // validate that the comp exists in the db (backend route)
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    const response = await axios.post(`${backendUrl}/get_composition`,
+     { name: redirectTitle.value },
+     {withCredentials: true} // Ensures cookies are sent with the request
+    );
+
+    const encodedTitle = encodeURIComponent(redirectTitle.value);
+    window.location.href = `CanvasView.html?from=profile&title=${encodedTitle}`;
+  } catch (error) {
+    console.error("Error fetching title:", error);
+    alert("Failed to find a composition with that name.");
+  }
 }
 
 
