@@ -2,6 +2,8 @@
 // Make sure Tone is installed from npm (?)
 //import * as Tone from 'tone';
 
+// ToDo: All done.
+
 // Create a synth and connect it to the main output
 const synth = new Tone.Synth().toDestination();
 // const clock = new Tone.Clock(time => {
@@ -13,7 +15,7 @@ function autoRestartTone() {
         Tone.start().then(() => console.log("Tone.js restarted automatically!"));
     }
 }
-
+/*
 function getDuration(timeString, duration, tempo) {
     // Split the string by colon
     const parts = timeString.split(':');
@@ -48,7 +50,7 @@ function getDuration(timeString, duration, tempo) {
 
     return Math.ceil(seconds);
 }
-
+*/
 // Listen for state changes and restart if needed
 Tone.getContext().rawContext.onstatechange = () => {
     if (Tone.getContext().rawContext.state === "suspended") {
@@ -90,15 +92,14 @@ Tone.getContext().rawContext.onstatechange = () => {
 
 // Example sequence: [time, note, duration]
 
-// CURRENTLY, TIME SIGNATURE IS 4/4. This is gonna be a pain to change later.
-function stopTime (sequence){
+function stopTime (sequence, timeSignatureNum, timeSignatureDenom){
     let lastNote = sequence[sequence.length - 1]; // We need 0 and 2.
 
     const parts = lastNote[0].split(':');
     const duration = lastNote[2];
 
-    const sixteenthsPerBeat = 4;
-    const beatsPerMeasure = 4;
+    const sixteenthsPerBeat = 16 / timeSignatureDenom;             
+    const beatsPerMeasure = timeSignatureNum;
 
     // Parse measures, beats, and sixteenths
     var measures = parseInt(parts[0]);
@@ -108,12 +109,14 @@ function stopTime (sequence){
     //console.log(duration);
     let durationInSixteenths = 0;
 
+    // Pretty sure this is correct. Make sure to double check with musical people xD
+    // Used to use sixteenths per beat, but that is wrong.
     if (duration === "1n") {
-        durationInSixteenths = 4 * beatsPerMeasure;
+        durationInSixteenths = 16
     } else if (duration === "2n.") {
-        durationInSixteenths = 3 * beatsPerMeasure;
+        durationInSixteenths = 12;
     } else if (duration === "2n") {
-        durationInSixteenths = 2 * beatsPerMeasure;
+        durationInSixteenths = 8;
     } else if (duration === "4n") {
         durationInSixteenths = 4;
     } else if (duration === "8n") {
@@ -136,7 +139,7 @@ function stopTime (sequence){
         measures += 1;
     }
     //console.log(sixteenths);
-    sixteenths += 1;
+    sixteenths += 0;
 
     const timeToStop = `${measures}:${beats}:${sixteenths}`;
     console.log(timeToStop);
@@ -145,11 +148,24 @@ function stopTime (sequence){
 
 async function playMusic() {
 
-    sequence = convertVtoT(window.vexNotes);
+    sequence = convertVtoT(window.vexNotes, window.timeSignNum, window.timeSignDenom);
+    console.log(sequence);
+    const transport = Tone.getTransport(); // Can be removed.
 
-    Tone.getTransport().stop(); // This fixed it holy crap.
-    Tone.getTransport().position = "0:0:0"; // Reset transport to start
-    Tone.getTransport().cancel();
+    synth.volume.value = 0; // Unmute the synth
+    transport.stop();
+    transport.position = "0:0:0"; // Reset transport to start
+    transport.cancel();
+    
+    let timeSig = [4, 4]; // Default time signature
+    if(window.timeSignNum == undefined || window.timeSignDenom == undefined) {
+        transport.timeSignature = [4, 4]; // Default time signature
+    } else {
+        transport.timeSignature = [window.timeSignNum, window.timeSignDenom]; // Set time signature
+        timeSig = [window.timeSignNum, window.timeSignDenom];
+    }
+    console.log("Time Signature:", transport.timeSignature);
+    
 
     await Tone.start(); // Ensure AudioContext is started
 
@@ -162,29 +178,33 @@ async function playMusic() {
 
         if (value.isLast) {
             part.stop();
-            console.log("Part stopped after last note.");
         }
     }, partData);
 
     // Start the transport and the part
-    const transport = Tone.getTransport(); // Can be removed.
-    
-    transport.bpm.value = 120; //tempoSlider.value; // Set the tempo
+    if (window.tempoInt == undefined) {
+        const adjustedBPM = 120 / (timeSig[1] / 4);
+        transport.bpm.value = adjustedBPM; // Set the tempo
+    } else {
+        const adjustedBPM = window.tempoInt / ( timeSig[1] / 4);
+        transport.bpm.value = adjustedBPM; // Set the tempo
+    }
+    console.log("Adjusted BPM:", transport.bpm.value);
     part.start(0);
     part.loop = 0;
+
+    const lastNoteTime = stopTime(sequence, timeSig[0], timeSig[1] );
+    console.log("Last note time:", lastNoteTime);
+    sequence.push([lastNoteTime, null, "4n"]);
+    console.log(sequence);
+
     transport.start();
 
-    const lastNoteTime = stopTime(sequence);
-    sequence.append([lastNoteTime, null, "4n"]);
-    //console.log(sequence);
-    transport.scheduleOnce((lnt) => {
-        console.log(lnt)
-        transport.stop(lnt);
+    transport.schedule((lnt) => {
+        // Reset transport to end
+        synth.volume.value = -Infinity; // Mute the synth
         console.log("Transport stopped after last note.");
     }, lastNoteTime);
-
-    //console.log(sequence);
-    //console.log(window.vexNotes);
 
 }
 
@@ -204,7 +224,19 @@ function pauseMusic() {
 //console.log(vexSequence);
 
 
-function convertVtoT(vArray, timeSignature = "4/4") { // Add rests and shi...
+function convertVtoT(vArray, timeSignatureNum, timeSignatureDenom) { 
+    // Left is Vex, right is Tone. 
+    // This will have to be changed for time signatures. (Or not; double check sixteenths below)
+
+    if (timeSignatureNum === undefined){
+        timeSignatureNum = 4;
+    }
+    if (timeSignatureDenom === undefined) {
+        timeSignatureDenom = 4;
+    }
+
+    const sixteenthsPerMeasure = parseInt(timeSignatureNum) * (16 / parseInt(timeSignatureDenom));
+
     const noteDurations = {
         "w": "1n",
         "hd": "2n.",
@@ -246,25 +278,34 @@ function convertVtoT(vArray, timeSignature = "4/4") { // Add rests and shi...
         tArray.push([`${currentTime[0]}:${currentTime[1]}:${currentTime[2]}`, key, duration]);
 
         // Update time
-        let beatsPerMeasure = parseInt(timeSignature.split("/")[0]);
-        let sixteenthsPerBeat = 4; // 4 sixteenths in a beat
+        console.log("Time Signature Num/Denom:", timeSignatureNum, timeSignatureDenom);
+       
+        // const beatsPerMeasure = parseInt(timeSignatureNum);
+        // const sixteenthsPerBeat = 16 / parseInt(timeSignatureDenom); Consider doing this as integer division. The program won't work well without a power of 2.
+        // 
 
         let durationInSixteenths = {
-            "1n": 4 * beatsPerMeasure,
-            "2n.": 3 * beatsPerMeasure,
-            "2n": 2 * beatsPerMeasure,
+            "1n": 16,
+            "2n.": 12,
+            "2n": 8,
             "4n": 4,
             "8n": 2,
             "16n": 1
         }[duration];
 
-        currentTime[2] += durationInSixteenths;
-        while (currentTime[2] >= sixteenthsPerBeat) {
-            currentTime[2] -= sixteenthsPerBeat;
-            currentTime[1] += 1;
+        if(duration == "1n" && key == null) { 
+            durationInSixteenths = sixteenthsPerMeasure; // Whole rest will always be a measure.
         }
-        while (currentTime[1] >= beatsPerMeasure) {
-            currentTime[1] -= beatsPerMeasure;
+
+        currentTime[2] += durationInSixteenths;
+
+        // while (currentTime[2] >= 4) {
+        //     currentTime[2] -= 4;
+        //     currentTime[1] += 1;
+        // } Retired quarter notes. We only do sixteenths now.
+
+        while (currentTime[2] >= sixteenthsPerMeasure) {
+            currentTime[2] -= sixteenthsPerMeasure;
             currentTime[0] += 1;
         }
     });
@@ -274,7 +315,7 @@ function convertVtoT(vArray, timeSignature = "4/4") { // Add rests and shi...
 
 // const vexToToneArr = convertVtoT(vexSequence, "4/4");
 // console.log(vexToToneArr);
-let sequence = convertVtoT(window.vexNotes);
+let sequence = convertVtoT(window.vexNotes, window.timeSignNum, window.timeSignDenom);
 /*
 const oldSequence = [
     [0, "C4", "4n"],      // Play C4 for a quarter note at time 0
