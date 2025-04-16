@@ -1,0 +1,434 @@
+openapi: 3.0.3
+info:
+  title: User Registration API
+  version: 1.0.0
+paths:
+  /register:
+    post:
+      summary: Register a new user
+      description: Registers a user with a username, password, and email. Performs validation and sets a JWT cookie upon success.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+                - email
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                password:
+                  type: string
+                  example: StrongPass123
+                email:
+                  type: string
+                  format: email
+                  example: johndoe@example.com
+      responses:
+        '200':
+          description: User registered successfully
+          headers:
+            Set-Cookie:
+              description: JWT token set as a cookie
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User created successfully
+        '400':
+          description: Bad request (e.g. missing fields, validation error, or user already exists)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: All fields are required
+        '500':
+          description: Internal server error while writing to the database
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: An error message from the exception
+      tags:
+        - Authentication
+
+  /login:
+    post:
+      summary: Authenticate user and start a session
+      description: Authenticates a user using username and password. If successful, sets a JWT token as an HTTP-only cookie.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                password:
+                  type: string
+                  example: StrongPass123
+      responses:
+        '200':
+          description: Login successful
+          headers:
+            Set-Cookie:
+              description: JWT token set as a cookie
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login successful
+        '400':
+          description: Missing username or password
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: All fields are required
+        '401':
+          description: Invalid credentials or user does not exist
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    examples:
+                      - User does not exist
+                      - Invalid credentials
+      tags:
+        - Authentication
+
+
+  /logout:
+    post:
+      summary: Log the user out
+      description: Logs the user out by clearing the JWT cookie.
+      responses:
+        '200':
+          description: Logout successful
+          headers:
+            Set-Cookie:
+              description: Clears the JWT cookie
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Logout successful
+      tags:
+        - Authentication
+
+  /check-auth:
+    get:
+      summary: Check user authentication status
+      description: Verifies the JWT token from the cookie to determine if the user is authenticated.
+      responses:
+        '200':
+          description: User is authenticated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticated:
+                    type: boolean
+                    example: true
+                  user:
+                    type: string
+                    example: johndoe
+        '401':
+          description: User is not authenticated or token is invalid/expired
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  authenticated:
+                    type: boolean
+                    example: false
+                  error:
+                    type: string
+                    examples:
+                      - Token expired
+                      - Invalid token
+      tags:
+        - Authentication
+
+
+  /delete_user:
+    post:
+      summary: Delete a user
+      description: Deletes a user from the database after validating credentials.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                  example: johndoe
+                password:
+                  type: string
+                  example: StrongPass123
+      responses:
+        '200':
+          description: User successfully deleted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User deleted successfully
+        '400':
+          description: Bad request (missing fields, user not found, or invalid credentials)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    examples:
+                      - Username is required
+                      - User not found
+                      - Invalid credentials
+        '500':
+          description: Internal server error while deleting user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: An error occurred while deleting the user
+      tags:
+        - User Management
+
+  /store_composition:
+    post:
+      summary: Store or update a composition
+      description: Stores a new composition for the authenticated user. If a composition with the same name already exists, it is updated instead.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - composition
+              properties:
+                composition:
+                  type: object
+                  description: JSON object representing the musical composition
+                  example:
+                    name: My First Symphony
+                    tempo: 120
+                    key: C Major
+                    tracks:
+                      - instrument: piano
+                        notes: [C4, E4, G4]
+      responses:
+        '200':
+          description: Composition saved or updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    examples:
+                      - Composition saved successfully
+                      - Composition updated successfully
+        '400':
+          description: Missing composition in request body
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Composition is required
+        '401':
+          description: JWT token missing or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Unauthorized - please login or create an account.
+        '500':
+          description: Internal server error while saving the composition
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: An error message from the exception
+      tags:
+        - Composition
+      security:
+        - cookieAuth: []
+
+
+  /get_compositions:
+    get:
+      summary: Get all user compositions
+      description: Returns a list of all compositions belonging to the authenticated user.
+      responses:
+        '200':
+          description: List of compositions retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  description: A composition object
+                  example:
+                    name: My First Symphony
+                    tempo: 120
+                    key: C Major
+                    tracks:
+                      - instrument: piano
+                        notes: [C4, E4, G4]
+        '401':
+          description: JWT token missing or invalid
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Unauthorized - please login or create an account.
+      tags:
+        - Composition
+      security:
+        - cookieAuth: []
+
+paths:
+  /get_composition:
+    post:
+      summary: Retrieve a specific composition
+      description: Returns a single composition by name for the authenticated user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+              properties:
+                name:
+                  type: string
+                  description: The name of the composition to retrieve
+                  example: My First Symphony
+      responses:
+        '200':
+          description: Composition retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  composition:
+                    type: object
+                    description: The requested composition
+                    example:
+                      name: My First Symphony
+                      tempo: 120
+                      key: C Major
+                      tracks:
+                        - instrument: piano
+                          notes: [C4, E4, G4]
+        '400':
+          description: Missing composition name in request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Composition ID is required
+        '401':
+          description: Unauthorized access (missing or invalid JWT)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Unauthorized - please login or create an account.
+        '404':
+          description: Composition not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Composition not found
+      tags:
+        - Composition
+      security:
+        - cookieAuth: []
+
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: jwt
