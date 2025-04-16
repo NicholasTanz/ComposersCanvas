@@ -23,11 +23,6 @@ npm install
 npm run dev
 ```     
 
-## Running the tests and linters:
-
-1. (TODO)
-
-
 ## Frontend Repository Structure:
 
 - `src` - contains the source code for the frontend. It can be broken down as follows:
@@ -43,7 +38,7 @@ npm run dev
 - `dockerfile` - Contains the Dockerfile for the frontend to build the image.
 
 ## Notes:
-1. Many of the files were not mentioned in the repository structure. This is because they are mainly for configuration and setup purposes. They are unlikely to be modified very often.
+1. Many of the files were not mentioned in the repository structure. This is because they are mainly for configuration and setup purposes.
 These files include:
 - `editor` - Contains the configuration for the editor used in the frontend.
 - `.gitattributes` - Contains the Git attributes for the frontend.
