@@ -10,7 +10,6 @@
    Deploy the built frontend image to **Cloud Run** with the following settings:
 
    - **Container Port:** `8080` (default)
-   - **Authentication:** Select **Allow unauthenticated invocations** (since the login system is not yet implemented).
    - **Minimum Instances:** Set to `1` (no need for more than one instance at the moment).
    - **All other settings:** Leave as default.
 
@@ -26,7 +25,6 @@ docker build --build-arg VITE_BACKEND_URL="<deployed_backend_url>" -f ./frontend
 1. **Backend Configuration**  
    Deploy the backend image to Cloud Run with the following settings:
 
-   - **Authentication:** Select **Allow unauthenticated invocations** (since the login system is not yet implemented).
    - **Docker Image:** Select the Docker image for the backend service.
    - **Service Scaling:** Set to `1` instance (no need for more than one instance at the moment).
 
@@ -50,6 +48,5 @@ docker build --build-arg VITE_BACKEND_URL="<deployed_backend_url>" -f ./frontend
 
 - **Number of Docker Images:**  
   - We have a total of 4 Docker images—2 for the frontend and 2 for the backend. The reason for this is that we maintain separate images for local development and production environments for both services.  
-  In the future, we plan to unify these images to reduce the number of images we need to manage, simplifying the deployment process.
   - Whenever you need to utilize the database, make sure to hit 'START' on the Cloud SQL instance to allow the backend service to connect to the database. We disable it to save costs when not in use.
   - Since the frontend is compiled and env vars are set during the build process, the frontend image requires the backend URL to be passed as a build argument. This is done to ensure that the frontend knows where to send requests to the backend service.

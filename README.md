@@ -1,49 +1,48 @@
-# Composers Canvas - A web application that allows users to create sheet music and play it back.
-## Frontend
-
-We utilize Vue.js for the frontend of Composers Canvas. At a high level, the frontend handles creating compositions, playback of compositions, and rendering sheet music.
-To see more information about the frontend setup, view the frontend [README](frontend/README.md).
-
-## Backend
-
-We utilize Flask for the backend of Composers Canvas. At a high level, the backend handles user authentication, saving compositions, and retrieving compositions.
-To see more information about the backend setup, view the backend [README](backend/README.md).
+# Composers Canvas
+Composers Canvas is an open source music composition software targeted towards beginners.
 
 
-## Docker Commands for local development
 
-Note: You should add a .env file in the frontend directory with the following content before running the docker commands.
+
+## Why Composers Canvas?
+Unlike many currently utilized music composition softwares, Composers Canvas is open source which allows a collaborative effort towards improvement. Additionally, Composers Canvas is meant for people who have experienced reading music but are just getting into composition. It's simplified interface is great for your first steps to avoid being overwhelmed.
+
+
+
+
+## Getting Started
+To spin up our application locally, you will need to have Docker installed. After installing docker, you can run the following commands in your terminal to get started.
+
+
 ```bash
-VITE_BACKEND_URL=http://localhost:5000
-```
-
-To start all three services (frontend, backend, and database), run the following command:
-
-
-```sh
+ # to start the application
 docker compose up
-```
 
-To stop the application, run:
 
-```sh
+# to stop the application
 docker compose down
-```
 
-To restart a specific container, use:
 
-```sh
-docker compose restart <container_name>
-```
+# to restart a specific service
+docker compose restart <service_name>
 
-## Accessing the PostgreSQL Database
 
-To access the PostgreSQL database via the terminal, use the following command:
-
-```sh
+# to access the database container.
 docker exec -it composerscanvas-db-1 psql -U username -d music_composer
 ```
 
-## Deployment
 
-We utilize Google Cloud Platform (GCP) for deployment. To see more information about the deployment setup, view the deployment [README](deployment/README.md).
+1. To learn more about the backend, click [here](../backend/README.md).
+2. To learn more about the frontend, click [here](../frontend/README.md).
+
+
+## Need Assistance?
+Feel free to open up an issue in the [issues section](https://github.com/NicholasTanz/ComposersCanvas/issues), if you need any help or have any questions.
+
+
+
+
+## Maintainers
+The maintainers of this project are Anjali Vanamala, Peter Kim, and Nicholas Tanzillo. Anyone is free to contribute to the project!
+
+
