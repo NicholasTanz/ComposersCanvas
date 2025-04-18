@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, make_response
-from .models import checkUserExists, addUser, removeUser, storeComposition, getUserId_FromUsername, getCompositions_byUserId
+from .models import checkUserExists, addUser, removeUser, storeComposition, getUserId_FromUsername, getCompositions_byUserId, deleteComposition
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime, timedelta, timezone
 import jwt
@@ -219,3 +219,28 @@ def register_routes(app : Flask):
                 return jsonify({"composition": comp["composition"]}), 200
 
         return jsonify({"message": "Composition not found"}), 404
+
+    # this route will be used to accept a composition and delete it from the database.
+    @app.route('/delete_composition', methods=['POST'])
+    def delete_composition():
+        # this assumes that the user is authenticated and the json web token validation
+        # has already been done (/check-auth route).
+
+        # get the data from the request
+        data = request.get_json()
+        compositionName = data.get('name')
+
+        # simple validation
+        if not compositionName:
+            return jsonify({"message": "Composition ID is required"}), 400
+        
+        # delete the composition from the database - we also need the user_id of the user who created the composition.
+        token = request.cookies.get('jwt')
+        if not token:
+            return jsonify({"message": "Unauthorized - please login or create an account."}), 401
+
+        decoded = jwt.decode(token, str(os.getenv("SECRET_KEY")), algorithms=["HS256"])
+        userId = getUserId_FromUsername(decoded["username"])
+
+        response = deleteComposition(compositionName, userId)
+        return response

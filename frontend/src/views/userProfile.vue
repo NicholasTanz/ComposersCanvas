@@ -10,9 +10,11 @@ const inputText = ref(""); // Stores user input
 const apiResponse = ref(null); // Stores API response
 const errorMessage = ref(null); // Stores error messages
 const savedCompositions = ref([]); // Stores fetched compositions
-
+const deleteUsername = ref('')
+const deletePassword = ref('')
 
 const redirectTitle = ref("");
+const deleteTitle = ref("");
 async function redirectToTargetPageWithTitle() {
   if (!redirectTitle.value.trim()) {
     alert("Please enter a title before continuing.");
@@ -35,26 +37,30 @@ async function redirectToTargetPageWithTitle() {
   }
 }
 
+async function deleteComposition() {
+  if (!deleteTitle.value.trim()) {
+    alert("Please enter a title before continuing.");
+    return;
+  }
+
+  try {
+    // validate that the comp exists in the db (backend route)
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    const response = await axios.post(`${backendUrl}/delete_composition`,
+     { name: deleteTitle.value },
+     {withCredentials: true} // Ensures cookies are sent with the request
+    );
+
+    alert("Composition deleted successfully.");
+  } catch (error) {
+    console.error("Error deleting composition:", error);
+    alert("Failed to find a composition with that title. The composition may not exist.");
+  }
+}
 
 onMounted(() => {
   authStore.checkAuthStatus();
 });
-
-async function sendTextToBackend() {
-  try {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL;
-    const response = await axios.post(`${backendUrl}/store_composition`, 
-      { composition: inputText.value },
-      { withCredentials: true } // Ensures cookies are sent with the request
-    );
-    apiResponse.value = response.data;
-    errorMessage.value = null;
-  } catch (error) {
-    console.error("Error sending data:", error);
-    apiResponse.value = null;
-    errorMessage.value = "Failed to send data to the API. Please try again.";
-  }
-}
 
 async function fetchSavedCompositions() {
   try {
@@ -66,187 +72,177 @@ async function fetchSavedCompositions() {
     errorMessage.value = "Failed to fetch saved compositions.";
   }
 }
+
+async function confirmDeleteAccount() {
+  if (deleteUsername.value.trim() === "" || deletePassword.value.trim() === "") {
+    alert("Please fill in both fields.");
+    return;
+  }
+
+  try {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    const response = await axios.post(`${backendUrl}/delete_user`, {
+      username: deleteUsername.value,
+      password: deletePassword.value
+    }, { withCredentials: true });
+
+    authStore.logout();
+    alert("Account deleted successfully.");
+      window.location.href = ""; // Redirect to the home page.
+  } catch (error) {
+    console.error("Error deleting account:", error);
+    alert("Failed to delete account. Please check your credentials.");
+  }
+}
+
 </script>
-
 <template>
-  <Navbar />
-  <div>
-    <h1>User Profile</h1>
-    <p v-if="authStore.isAuthenticated">
-      You are logged in!
-      <button @click="authStore.logout">Logout</button>
-    </p>
-    
-    <p v-else>
-      Please log in to view account details.
-    </p>
-    
-    <!-- testing save endpoint -->
-    <section v-if="authStore.isAuthenticated">
-      <h2>Test API Endpoint</h2>
-      <input v-model="inputText" type="text" placeholder="Enter some text"/>
-      <button @click="sendTextToBackend">
-        Send to Backend
-      </button>
-      
-      <div v-if="apiResponse">
-        <strong>Response:</strong> {{ apiResponse }}
-      </div>
-      
-      <div v-if="errorMessage">
-        <strong>Error:</strong> {{ errorMessage }}
-      </div>
-    </section>
-    
-    <!-- testing fetch endpoint -->
-    <section v-if="authStore.isAuthenticated">
-      <h2>Your Saved Compositions</h2>
-      <button @click="fetchSavedCompositions">
-        View Saved Compositions
-      </button>
-      
-      <ul v-if="savedCompositions.length">
-        <li v-for="(composition, index) in savedCompositions" :key="index">
-          {{ composition }}
-        </li>
-      </ul>
-      
-      <p v-else>No saved compositions found.</p>
-    </section>
+  <div class="profile-page">
+    <Navbar />
 
-    <!-- Redirect to another page -->
-    <ul v-if ="authStore.isAuthenticated">
-    <h2>Redirect with Title</h2>
-    <input v-model="redirectTitle" type="text" placeholder="Enter a title to pass" />
-    <button @click="redirectToTargetPageWithTitle" class="bg-green-500">
-      Go to Target Page with Title
-    </button>
-  </ul>
+    <div class="container">
+      <h1 class="title">User Profile</h1>
+
+      <div class="auth-section">
+        <p v-if="authStore.isAuthenticated">
+          <button class="btn logout-btn" @click="authStore.logout">Logout</button>
+        </p>
+        <p v-else class="login-prompt">
+          Please login to view your profile.
+        </p>
+      </div>
+
+      <div v-if="authStore.isAuthenticated" class="profile-content">
+
+        <!-- Compositions -->
+        <section class="compositions-section">
+          <h2>Your Compositions</h2>
+          <button class="btn" @click="fetchSavedCompositions">Fetch Saved Compositions</button>
+
+          <ul v-if="savedCompositions.length" class="composition-list">
+            <li v-for="(composition, index) in savedCompositions" :key="index">
+              {{ composition }}
+            </li>
+          </ul>
+          <p v-else>No saved compositions found.</p>
+        </section>
+
+        <!-- Edit Composition -->
+        <section class="edit-section">
+          <h2>Edit Composition</h2>
+          <div class="input-group">
+            <input
+              v-model="redirectTitle"
+              type="text"
+              placeholder="Enter a composition to edit"
+              class="input"
+            />
+            <button class="btn" @click="redirectToTargetPageWithTitle">Edit Composition</button>
+          </div>
+        </section>
+
+        <!-- Delete a Composition. -->
+        <section class="delete-composition-section">
+          <h2>Delete a Composition</h2>
+          <div class="input-group">
+            <input
+              v-model="deleteTitle"
+              type="text"
+              placeholder="Enter a composition to delete"
+              class="input"
+            />
+            <button class="btn" @click="deleteComposition">Delete Composition</button>
+          </div>
+        </section>
+
+        <!-- Delete Account -->
+        <section class="delete-section">
+          <h2>Delete Account</h2>
+          <div class="input-group">
+            <input
+              type="text"
+              v-model="deleteUsername"
+              placeholder="Re-enter your username"
+              class="input"
+            />
+            <input
+              type="password"
+              v-model="deletePassword"
+              placeholder="Enter your password"
+              class="input"
+            />
+            <button class="btn delete-btn" @click="confirmDeleteAccount">Delete Account</button>
+          </div>
+        </section>
+
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
-/* Page Layout */
-div {
-  min-height: 100vh;
-  background: linear-gradient(to bottom right, #d9e9f4, #98c8e0);
-  padding: 5vw 3vw;
-  font-family: "Comic Sans MS", cursive, sans-serif;
-  color: #333;
+.profile-page {
+  font-family: Arial, sans-serif;
+  padding: 2rem;
 }
 
-/* Headings */
-h1 {
-  font-size: 2.5rem;
-  font-weight: bold;
-  color:rgb(45, 47, 55);
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-h2 {
-  font-size: 1.75rem;
-  color:rgb(56, 59, 67);
-  margin-top: 2rem;
-  text-align: center;
-}
-
-/* Paragraph */
-p {
-  text-align: center;
-  font-size: 1.1rem;
-  margin-bottom: 1.5rem;
-}
-
-/* Input field */
-input[type="text"] {
-  width: 70%;
-  max-width: 400px;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  background: #f9f9f9;
-  transition: all 0.3s ease-in-out;
-  font-size: 1rem;
-}
-
-input[type="text"]:focus {
-  outline: none;
-  border-color: #3b82f6;
-  background: #eef6ff;
-}
-
-/* Button base style */
-button {
-  margin-top: 1rem;
-  font-size: 1rem;
-  padding: 0.75rem 1.5rem;
-  font-weight: bold;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease-in-out;
-}
-
-/* Specific button colors */
-button.bg-blue-500 {
-  background-color: #1d4ed8;
-  color: white;
-}
-
-button.bg-blue-500:hover {
-  background-color: #2563eb;
-}
-
-button.bg-green-500 {
-  background-color: #10b981;
-  color: white;
-}
-
-button.bg-green-500:hover {
-  background-color: #059669;
-}
-
-/* Response & Error boxes */
-.api-test div,
-.saved-compositions div {
+.container {
   max-width: 600px;
   margin: 0 auto;
 }
 
-.bg-green-100 {
-  background-color: #d1fae5;
-  color: #065f46;
+.title {
+  font-size: 2rem;
+  margin: 3rem 0 1rem 0;
+  text-align: center;
 }
 
-.bg-red-100 {
-  background-color: #fee2e2;
-  color: #991b1b;
+
+.auth-section {
+  margin-bottom: 2rem;
+  text-align: center;
 }
 
-.border {
+.profile-content section {
+  margin-bottom: 2rem;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.input {
+  padding: 0.5rem;
+  font-size: 1rem;
   border: 1px solid #ccc;
+  border-radius: 6px;
 }
 
-.rounded {
-  border-radius: 8px;
+.btn {
+  padding: 0.6rem 1rem;
+  background-color: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 0.5rem;
 }
 
-/* Saved composition list */
-ul {
-  list-style-type: none;
-  padding: 0;
+.logout-btn {
+  background-color: #777;
 }
 
-li {
-  background: white;
-  margin-bottom: 10px;
-  padding: 12px;
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  transition: transform 0.2s ease;
+.delete-btn {
+  background-color: #e74c3c;
 }
 
-li:hover {
-  transform: scale(1.02);
+.composition-list {
+  list-style: disc;
+  margin-top: 0.5rem;
+  padding-left: 1.5rem;
 }
 </style>
