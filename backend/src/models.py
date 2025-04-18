@@ -164,3 +164,21 @@ def getCompositions_byUserId(userId):
 
     compositions = Composition.query.filter_by(user_id=userId).all()
     return [composition.to_dict() for composition in compositions]
+
+def deleteComposition(compositionName, userId):
+    try:
+        compositions = Composition.query.filter_by(user_id=userId).all()
+        dict_compositions = [composition.to_dict() for composition in compositions]
+        for comp in dict_compositions:
+            if comp["composition"]["name"] == compositionName:
+                comp_to_delete = Composition.query.filter_by(id=comp["id"]).first()
+                db.session.delete(comp_to_delete)
+                db.session.commit()
+                return jsonify({"message": "Composition deleted successfully"}), 200
+        
+        return jsonify({"message": "Composition not found"}), 404
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"message": str(e)}), 500
+
