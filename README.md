@@ -32,8 +32,8 @@ docker exec -it composerscanvas-db-1 psql -U username -d music_composer
 ```
 
 
-1. To learn more about the backend, click [here](../backend/README.md).
-2. To learn more about the frontend, click [here](../frontend/README.md).
+1. To learn more about the backend, click [here](./backend/README.md).
+2. To learn more about the frontend, click [here](./frontend/README.md).
 
 
 ## Need Assistance?
