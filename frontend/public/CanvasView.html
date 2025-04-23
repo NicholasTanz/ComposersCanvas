@@ -10,12 +10,11 @@
     <script src="https://cdn.jsdelivr.net/npm/axios@1.8.4/dist/axios.min.js"></script>
     <style>
         body {
-            padding-top: 80px; /* More space for toolbar */
-            background: #d9e9f4; /* Page background */
+            padding-top: 80px; 
+            background: #d9e9f4; 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
           }
       
-          /* Fixed Toolbar */
         .fixed-toolbar {
         position: fixed;
         top: 0;
@@ -43,7 +42,7 @@
         }
     
         .fixed-toolbar button:hover {
-        background: #1d4ed8; /* Dark blue hover effect */
+        background: #1d4ed8; 
         }
     
         .fixed-toolbar img {
@@ -51,10 +50,9 @@
         height: 32px;
         }
     
-        /* Tutorial Dropdown Container */
         .tutorial-container {
         position: relative;
-        margin-left: auto; /* Push to the right side */
+        margin-left: auto; 
         }
     
         .tutorial-btn {
@@ -71,7 +69,6 @@
         color: white;
         }
     
-        /* Dropdown Content: Hidden by default */
         .tutorial-dropdown {
         display: none;
         position: absolute;
@@ -90,12 +87,10 @@
         margin-top: 4px;
         }
         
-        /* Show dropdown when container has the "active" class */
         .tutorial-container.active .tutorial-dropdown {
         display: block;
         }
     
-        /* Other styles remain unchanged */
         #note-selection {
         position: relative;
         display: inline-block;
@@ -161,7 +156,7 @@
         }
     
         button:hover {
-        background: #1d4ed8; /* Dark blue hover effect */
+        background: #1d4ed8; 
         }
     
         #my-stave {
@@ -224,7 +219,7 @@
         }
     
         #settings-panel:not(.collapsed) {
-        max-height: 500px; /* Enough for content */
+        max-height: 500px; 
         opacity: 1;
         pointer-events: auto;
         }
@@ -310,7 +305,7 @@
         border-radius: 50%;
         width: 50px;
         height: 50px;
-        background-color: #1d4ed8; /* Dark blue background */
+        background-color: #1d4ed8; 
         color: white;
         display: flex;
         align-items: center;
@@ -320,7 +315,7 @@
         }
     
         .floating-back:hover {
-        background-color: #2563eb; /* Dark blue hover effect */
+        background-color: #2563eb; 
         }
         .invisible-buttons {
         display: none !important;
@@ -331,7 +326,6 @@
         <a href="/profile" class="floating-back">←</a>
         <div>
           <div class="fixed-toolbar">
-            <!-- Toolbar Controls -->
             <div id="note-selection">
               <button id="note-button">
                 <img src="images/quarter.png" alt="Quarter Note" id="note-icon" style="width: 40px; height: 40px;">
@@ -355,7 +349,6 @@
               <img src="images/pause.svg" alt="Pause" style="width: 40px; height: 40px;">
             </button>
             
-            <!-- Tutorial Dropdown on the right side -->
             <div class="tutorial-container" id="tutorial-container">
               <button class="tutorial-btn" id="tutorial-btn">Tutorial</button>
               <div class="tutorial-dropdown">
@@ -378,7 +371,6 @@
             <div id="settings-panel" class="collapsed">
               <h3>Score Settings</h3>
           
-              <!-- First Row -->
               <div class="settings-row">
                 <div class="input-group">
                   <label for="score-title">Score Title:</label>
@@ -390,7 +382,6 @@
                 </div>
               </div>
           
-              <!-- Second Row -->
               <div class="settings-row">
                 <div class="input-group">
                   <label for="numerator">Time Signature:</label>
@@ -406,7 +397,6 @@
                 </div>
               </div>
           
-              <!-- Third Row: Buttons -->
               <div class="settings-row">
                 <div class="input-group invisible-buttons">
                   <button id="update-title">Set Title</button>
@@ -416,14 +406,12 @@
                 </div>
               </div>
           
-              <!-- PDF Gen -->
               <div class="settings-row">
                 <div class="input-group" style="flex: 1;">
                   <button id="doc-gen">Generate Pdf</button>
                 </div>
               </div>
           
-              <!-- Save Block at Bottom -->
               <div class="settings-row">
               <div class="input-group" style="flex: 1;">
                 <button id="save-composition">Save Composition</button>
@@ -433,7 +421,6 @@
           </div>
           
           
-        <!-- move this to score settings -->
         <div id="my-stave"></div>           
     <script>
         const VF = Vex.Flow;
@@ -454,10 +441,10 @@
         let tempo = 120;
         let eq = "=";
         let tempoNote = "♩";
-        let selectedNoteIndexes = []; // Track the selected note index
+        let selectedNoteIndexes = []; 
         let lastSelectedIndex = null;
         let dur = "q";
-        let isRestMode = false; // Track if we're in rest mode
+        let isRestMode = false; 
         let currentKeySignature = 'C'
         let keysigadd = 0;
         let timeSignatureNumerator = 4; 
@@ -486,7 +473,7 @@
             timeSignatureDenominator: timeSignatureDenominator,
             currentKeySignature:  currentKeySignature,
             tempo: tempo,
-            notes: notes  // array of note objects
+            notes: notes  
         };
         if (name && scoreTitle && timeSignatureNumerator && timeSignatureDenominator && currentKeySignature && tempo && notes) {
             try {
@@ -568,7 +555,7 @@
             a: ["a#", "bb"],
             "a#": ["b"],
             bb: ["b"],
-            b: ["c"], // Ensure b maps to c, not bb
+            b: ["c"], 
         };
 
         const wholeSteps = {
@@ -669,17 +656,36 @@
 
             adjustSVGHeight(totalRows);
 
-            let globalIndex = 0; // Global index across all measures
-            let firstMeasure = true; // Flag to identify the first measure
+            let globalIndex = 0; 
+            let firstMeasure = true; 
             let measureWidths = []
             for (let measureIndex = 0; measureIndex < measures.length; measureIndex++) {
-                const measureNotes = measures[measureIndex];
+                let measureNotes = measures[measureIndex];
                 staveWidth = (100 * measureNotes.length) 
-                const measureStaveWidth = firstMeasure ? staveWidth+keysigadd+ keysignum[currentKeySignature]*35 : staveWidth; // Make first measure larger\
+                let measureStaveWidth = firstMeasure ? staveWidth+keysigadd+ keysignum[currentKeySignature]*35 : staveWidth; // Make first measure larger\
                 if (window.innerWidth < measureStaveWidth) {
                     alert("Sorry, your screen is too small for the measure.");
-                    break;
+                    console.log(measureNotes)
+                    while(window.innerWidth < measureStaveWidth) {
+                        if (measureNotes.length > 0) {
+                            measureNotes = measureNotes.slice(0, measureNotes.length - 1);
+                        }
+                        staveWidth = (100 * measureNotes.length);
+                        measureStaveWidth = firstMeasure ? staveWidth+keysigadd+ keysignum[currentKeySignature]*35 : staveWidth; 
+                    }
+                    
+                    console.log(measureNotes)
                 }
+                let notenum = -1;
+                for (let indexn = 0; indexn < measureIndex; indexn++) {
+                    const meas = measures[indexn];
+                    notenum = notenum + meas.length;
+                }
+                notenum = notenum + measureNotes.length;
+                for (let deleteindex = 0; deleteindex < measures[measureIndex].length-measureNotes.length+1; deleteindex++) {
+                    notes.splice(notenum, 1);
+                }
+
                 measureWidths.push(measureStaveWidth)
                 const position = calculateStavePosition(measureWidths);
 
@@ -692,14 +698,14 @@
                 
                 if (firstMeasure) {
                     stave.addClef("treble").addTimeSignature(timeSignatureNumerator + "/" + timeSignatureDenominator).addKeySignature(currentKeySignature);
-                    firstMeasure = false; // Set the flag to false after the first measure
+                    firstMeasure = false; 
                 }
 
                 stave.setContext(context).draw();
 
                 // Fixed time signature: 4 beats per measure
                 const voice = new VF.Voice({ num_beats: timeSignatureNumerator, beat_value: timeSignatureDenominator });
-                voice.setStrict(false); // Allow flexible durations without strict validation
+                voice.setStrict(false); 
                 const brackets = []; // Store 8va brackets
                 let firstHighNote = null;
                 let lastHighNote = null;
@@ -766,7 +772,7 @@
                         lastLowNote = staveNote;
                     }
 
-                    globalIndex++; // Increment global index for each note
+                    globalIndex++; 
                     return staveNote;
                 });
 
@@ -839,7 +845,7 @@
             };
 
             notes.forEach(note => {
-                const beats = durationValues[note.duration] || 1; // Default to 1 beat if unknown
+                const beats = durationValues[note.duration] || 1; 
                 if (currentBeats + beats > timeSignatureNumerator) {
                     measures.push(currentMeasure);
                     currentMeasure = [];
@@ -875,7 +881,7 @@
             };
 
             notes.forEach(note => {
-                const beats = durationValues[note.duration] || 1; // Default to 1 beat if unknown
+                const beats = durationValues[note.duration] || 1;
                 if(durationValues[note.duration] <= timeSignatureNumerator) {
                     if (currentBeats + beats > timeSignatureNumerator) {
                         while (currentBeats < timeSignatureNumerator) {
@@ -883,15 +889,12 @@
                             currentMeasure.push({ key: "b/4", duration: restDuration + "r" });
                             currentBeats += durationValues[restDuration];
                         }
-                        // Now, check if the current measure is all rests (excluding whole rests)
                         if (isMeasureAllRests(currentMeasure) && !containsWholeRest(currentMeasure)) {
-                            // Do not push this measure if it only contains rests (except for whole rest)
                             console.log("Skipping measure with only rests (except whole rest).");
                         } else {
-                            resultNotes.push(...currentMeasure); // Otherwise, push it to the result
+                            resultNotes.push(...currentMeasure);
                         }
 
-                        // Reset the measure and beats tracker for the next measure
                         currentMeasure = [];
                         currentBeats = 0;
                     }
@@ -902,7 +905,6 @@
                 
             });
 
-            // Final check for the last measure
             while (currentBeats < timeSignatureNumerator) {
                 const restDuration = getRestDuration(timeSignatureNumerator - currentBeats);
                 currentMeasure.push({ key: "b/4", duration: restDuration + "r" });
@@ -911,7 +913,7 @@
             if (isMeasureAllRests(currentMeasure) && !containsWholeRest(currentMeasure)) {
                 console.log("Skipping last measure with only rests (except whole rest).");
             } else {
-                resultNotes.push(...currentMeasure); // Add the last measure if valid
+                resultNotes.push(...currentMeasure); 
             }
 
             return resultNotes;
@@ -942,8 +944,8 @@
         // Calculate stave positions
         function calculateStavePosition(measureWidths) {
             const screenWidth = window.innerWidth;
-            let x_value = 0; // start with some padding
-            let y_value = 20; // starting y position
+            let x_value = 0; 
+            let y_value = 20;
             let rowIndex = 1;
             
             // Loop through all measures to calculate accumulated width
@@ -951,7 +953,7 @@
                 if (x_value + measureWidths[i] > screenWidth) {
                     // Move to the next row if the measure exceeds screen width
                     y_value += rowSpacing;
-                    x_value = 0; // Reset x to some padding
+                    x_value = 0; 
                     rowIndex += 1;
                 }
 
@@ -1009,7 +1011,7 @@
                 else notes[index].key = `${newNote}/${octave}`;
             } else if (direction === "down") {
                 newNote = reverseHalfSteps[note] || note;
-                if (newNote === "b") notes[index].key = `${newNote}/${+octave - 1}`; // Handle octave change
+                if (newNote === "b") notes[index].key = `${newNote}/${+octave - 1}`; 
                 else notes[index].key = `${newNote}/${octave}`;
             }
 
@@ -1055,7 +1057,6 @@
             } else if (event.key === "s") {
                 selectedNoteIndexes.forEach(index => moveNoteWholeStep(index, "down"));
             } else if (event.key === "ArrowRight") {
-                // Move forward in the notes array
                 if (selectedNoteIndexes.length > 0) {
                     let maxIndex = Math.max(...selectedNoteIndexes);
                     selectedNoteIndexes = [(maxIndex + 1) % notes.length];
@@ -1063,7 +1064,6 @@
                     renderNotes();
                 }
             } else if (event.key === "ArrowLeft") {
-                // Move backward in the notes array
                 if (selectedNoteIndexes.length > 0) {
                     let minIndex = Math.min(...selectedNoteIndexes);
                     selectedNoteIndexes = [(minIndex - 1 + notes.length) % notes.length];
@@ -1074,7 +1074,6 @@
                 let newNote;
 
                 if (selectedNoteIndexes.length === 0) {
-                    // Default new note if nothing is selected
                     newNote = isRestMode
                         ? { key: "b/4", duration: dur + "r" }
                         : { key: "g/4", duration: dur };
@@ -1115,39 +1114,39 @@
                 lastSelectedIndex = null;
                 renderNotes();                          
             } else if (event.key === "r") {
-                isRestMode = !isRestMode; // Toggle rest mode state
+                isRestMode = !isRestMode; 
                 const restButton = document.getElementById("rest-button");
 
                 // Toggle the active class to change the button's appearance
                 if (isRestMode) {
-                    restButton.classList.add("active"); // Add active class when rest mode is on
+                    restButton.classList.add("active"); 
                 } else {
-                    restButton.classList.remove("active"); // Remove active class when rest mode is off
+                    restButton.classList.remove("active"); 
                 }
             } else if (event.key === "1") {
                 const noteIcon = document.getElementById("note-icon");
-                dur = "w"; // Update the duration variable
-                noteIcon.src = "images/whole.svg"; // Change button icon
+                dur = "w"; 
+                noteIcon.src = "images/whole.svg"; 
             } else if (event.key === "3") {
                 const noteIcon = document.getElementById("note-icon");
-                dur = "h"; // Update the duration variable
-                noteIcon.src = "images/half.png"; // Change button icon
+                dur = "h"; 
+                noteIcon.src = "images/half.png";
             } else if (event.key === "2") {
                 const noteIcon = document.getElementById("note-icon");
-                dur = "hd"; // Update the duration variable
-                noteIcon.src = "images/dotted.svg"; // Change button icon
+                dur = "hd"; 
+                noteIcon.src = "images/dotted.svg"; 
             } else if (event.key === "4") {
                 const noteIcon = document.getElementById("note-icon");
-                dur = "q"; // Update the duration variable
-                noteIcon.src = "images/quarter.png"; // Change button icon
+                dur = "q"; 
+                noteIcon.src = "images/quarter.png"; 
             } else if (event.key === "5") {
                 const noteIcon = document.getElementById("note-icon");
-                dur = "8"; // Update the duration variable
-                noteIcon.src = "images/eighth.png"; // Change button icon
+                dur = "8"; 
+                noteIcon.src = "images/eighth.png";
             } else if (event.key === "6") {
                 const noteIcon = document.getElementById("note-icon");
-                dur = "16"; // Update the duration variable
-                noteIcon.src = "images/sixteenth.png"; // Change button icon
+                dur = "16";
+                noteIcon.src = "images/sixteenth.png"; 
             }
         });
 
@@ -1168,7 +1167,7 @@
             scoreTitleInput.addEventListener('keydown', (event) => {
                 if (event.key === 'Enter') {
                     scoreTitle = scoreTitleInput.value;
-                    renderNotes();  // Re-render the score with the new title
+                    renderNotes(); 
                 }
             });
 
@@ -1178,8 +1177,8 @@
                     const validKeySignatures = ["C", "G", "D", "A", "E", "B", "F#", "C#", "F", "Bb", "Eb", "Ab", "Db", "Fb", "Cb"];
                     
                     if (validKeySignatures.includes(inputKey)) {
-                        currentKeySignature = inputKey; // Update the key signature
-                        renderNotes(); // Re-render with the new key signature
+                        currentKeySignature = inputKey; 
+                        renderNotes();
                     } else {
                         alert("Invalid key signature. Please enter a valid key signature.");
                     }
@@ -1198,7 +1197,7 @@
                         } else {
                             timeSignatureNumerator = num;
                             timeSignatureDenominator = denom;
-                            renderNotes(); // Re-render with the new time signature
+                            renderNotes(); 
                         }
                     }
                 }
@@ -1215,7 +1214,7 @@
                         } else {
                             timeSignatureNumerator = num;
                             timeSignatureDenominator = denom;
-                            renderNotes(); // Re-render with the new time signature
+                            renderNotes(); 
                         }
                     }
                 }
@@ -1226,7 +1225,7 @@
                     const tempoValue = tempoInput.value;
                     if (tempoValue) {
                         tempo = tempoValue;
-                        renderNotes(); // Re-render the score with the new tempo
+                        renderNotes();
                     }
                 }
             });
@@ -1234,10 +1233,10 @@
                 button.addEventListener("click", (event) => {
                     const selectedNote = event.currentTarget.getAttribute("data-value");
                     const selectedImage = event.currentTarget.querySelector("img").src;
-                    dur = selectedNote; // Update the duration variable
-                    noteIcon.src = selectedImage; // Change button icon
+                    dur = selectedNote; 
+                    noteIcon.src = selectedImage; 
 
-                    // Hide dropdown after selection
+    
                     noteOptions.style.display = "none";
                 });
             });
@@ -1255,14 +1254,13 @@
             });
         });
         document.getElementById("rest-button").addEventListener("click", () => {
-            isRestMode = !isRestMode; // Toggle rest mode state
+            isRestMode = !isRestMode; 
             const restButton = document.getElementById("rest-button");
 
-            // Toggle the active class to change the button's appearance
             if (isRestMode) {
-                restButton.classList.add("active"); // Add active class when rest mode is on
+                restButton.classList.add("active"); 
             } else {
-                restButton.classList.remove("active"); // Remove active class when rest mode is off
+                restButton.classList.remove("active"); 
             }
         });
 
@@ -1270,10 +1268,9 @@
             const inputKey = document.getElementById("key-signature").value.trim();
             const validKeySignatures = ["C", "G", "D", "A", "E", "B", "F#", "C#", "F", "Bb", "Eb", "Ab", "Db", "Fb", "Cb"];
 
-            // Check if inputKey is in the list of valid key signatures
             if (validKeySignatures.includes(inputKey)) {
-                currentKeySignature = inputKey; // Update the key signature
-                renderNotes(); // Re-render with the new key signature
+                currentKeySignature = inputKey; 
+                renderNotes(); 
             } else {
                 alert("Invalid key signature. Please enter a valid key signature.");
             }
@@ -1289,15 +1286,13 @@
                 const num = parseInt(numerator);
                 const denom = parseInt(denominator);
 
-                // Calculate the width required for the time signature based on the numerator
-                const requiredWidth = 100 * num; // 100px per unit for each beat in the numerator
+                const requiredWidth = 100 * num; 
 
-                // Get the screen width
                 const screenWidth = window.innerWidth;
 
                 // If the time signature width exceeds the screen width, show a popup and don't update the time signature
                 if (requiredWidth > screenWidth) {
-                    alert("Sorry, your screen is too small for this time signature.");
+                    alert("Sorry, your screen is too small for this time signature.");            
                 } 
                 else if (denom <=0 || num <= 0){
                     alert("Sorry, numbers less than 1 are not valid in a time signature.");
@@ -1308,7 +1303,7 @@
                     timeSignatureDenominator = denom;
                     window.timeSignNum = num;
                     window.timeSignDenom = denom;
-                    renderNotes(); // Re-render with the new time signature
+                    renderNotes(); 
                 }
             }
         });
@@ -1318,19 +1313,17 @@
         });
         document.getElementById('update-title').addEventListener('click', function() {
             scoreTitle = document.getElementById('score-title').value;
-            renderNotes();  // Re-render the score with the new title
+            renderNotes(); 
         });
         document.getElementById('set-tempo').addEventListener('click', function() {
             tempo = document.getElementById('tempo').value;
-            renderNotes();  // Re-render the score with the new title
+            renderNotes();  
         });
         
         tutorialBtn.addEventListener('click', function(e) {
             e.stopPropagation(); // Prevent click from bubbling up if necessary
             tutorialContainer.classList.toggle('active');
         });
-
-        // Optional: If clicking anywhere outside, close the dropdown
         document.addEventListener('click', function(e) {
             if (!tutorialContainer.contains(e.target)) {
                 tutorialContainer.classList.remove('active');

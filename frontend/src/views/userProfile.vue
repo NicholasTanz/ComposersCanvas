@@ -6,11 +6,10 @@ import axios from 'axios';
 
 const authStore = useAuthStore();
 const savedCompositions = ref([]);
-const deleteTitle = ref(""); // Stores the composition title for deletion
-const deleteUsername = ref(""); // Stores username for account deletion
-const deletePassword = ref(""); // Stores password for account deletion
+const deleteTitle = ref(""); 
+const deleteUsername = ref(""); 
+const deletePassword = ref(""); 
 
-// New state to toggle the visibility of delete sections
 const deletionVisible = ref(false);
 
 async function goToComposition(name) {
@@ -38,7 +37,7 @@ async function deleteComposition() {
     const backendUrl = import.meta.env.VITE_BACKEND_URL;
     await axios.post(`${backendUrl}/delete_composition`, { name: deleteTitle.value }, { withCredentials: true });
     alert("Composition deleted successfully.");
-    fetchSavedCompositions(); // Refresh the list after deletion
+    fetchSavedCompositions(); 
   } catch (error) {
     console.error("Error deleting composition:", error);
     alert("Failed to delete composition. Please try again.");
