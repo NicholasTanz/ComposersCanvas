@@ -6,6 +6,12 @@ import axios from 'axios';
 
 const authStore = useAuthStore();
 const savedCompositions = ref([]);
+const deleteTitle = ref(""); // Stores the composition title for deletion
+const deleteUsername = ref(""); // Stores username for account deletion
+const deletePassword = ref(""); // Stores password for account deletion
+
+// New state to toggle the visibility of delete sections
+const deletionVisible = ref(false);
 
 async function goToComposition(name) {
   const encodedName = encodeURIComponent(name);
@@ -22,6 +28,39 @@ async function fetchSavedCompositions() {
   }
 }
 
+async function deleteComposition() {
+  if (!deleteTitle.value.trim()) {
+    alert("Please enter a composition title.");
+    return;
+  }
+
+  try {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    await axios.post(`${backendUrl}/delete_composition`, { name: deleteTitle.value }, { withCredentials: true });
+    alert("Composition deleted successfully.");
+    fetchSavedCompositions(); // Refresh the list after deletion
+  } catch (error) {
+    console.error("Error deleting composition:", error);
+    alert("Failed to delete composition. Please try again.");
+  }
+}
+
+async function deleteUserAccount() {
+  const confirmed = confirm("Are you sure you want to permanently delete your account?");
+  if (!confirmed) return;
+
+  try {
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    await axios.post(`${backendUrl}/delete_user`, { username: deleteUsername.value, password: deletePassword.value }, { withCredentials: true });
+    alert("Your account has been deleted.");
+    await authStore.logout();
+    window.location.href = "/";
+  } catch (error) {
+    console.error("Error deleting account:", error);
+    alert("Failed to delete account. Please try again.");
+  }
+}
+
 onMounted(async () => {
   await authStore.checkAuthStatus();
   if (authStore.isAuthenticated) {
@@ -33,30 +72,56 @@ onMounted(async () => {
 <template>
   <Navbar />
   <div class="profile-container">
-    
     <h1>User Profile</h1>
-    <button class="logout-button" @click="authStore.logout">Logout</button>
     <p v-if="authStore.isAuthenticated">
       You are logged in!
+      <button class="logout-button" @click="authStore.logout">Logout</button>
+      <!-- Saved Compositions Section -->
+      <section v-if="authStore.isAuthenticated">
+        <h2>Your Saved Compositions</h2>
+        <ul v-if="savedCompositions.length">
+          <li
+            v-for="(composition, index) in savedCompositions"
+            :key="index"
+            @click="goToComposition(composition.name)"
+          >
+            {{ composition.name }}
+          </li>
+        </ul>
+        <p v-else>No saved compositions found.</p>
+      </section>
+
+      <!-- Toggle Deletion Button -->
+      <section v-if="authStore.isAuthenticated">
+        <button @click="deletionVisible = !deletionVisible" class="btn toggle-deletion-btn">
+          {{ deletionVisible ? 'Hide Deletion Options' : 'Show Deletion Options' }}
+        </button>
+      </section>
+
+      <!-- Deletion Sections (Visibility Controlled by deletionVisible) -->
+      <section v-if="deletionVisible && authStore.isAuthenticated">
+        <h2>Delete a Composition</h2>
+        <div class="input-group">
+          <input v-model="deleteTitle" type="text" placeholder="Enter composition title to delete" class="input" />
+          <button @click="deleteComposition" class="btn delete-btn">Delete Composition</button>
+        </div>
+      </section>
+
+      <section v-if="deletionVisible && authStore.isAuthenticated">
+        <h2>Delete Account</h2>
+        <div class="input-group">
+          <input v-model="deleteUsername" type="text" placeholder="Re-enter your username" class="input" />
+          <input v-model="deletePassword" type="password" placeholder="Enter your password" class="input" />
+          <button @click="deleteUserAccount" class="btn delete-btn">Delete Account</button>
+        </div>
+      </section>
     </p>
     
     <p v-else>
       Please log in to view account details.
     </p>
     
-    <section v-if="authStore.isAuthenticated">
-      <h2>Your Saved Compositions</h2>
-      <ul v-if="savedCompositions.length">
-        <li
-          v-for="(composition, index) in savedCompositions"
-          :key="index"
-          @click="goToComposition(composition.name)"
-        >
-          {{ composition.name }}
-        </li>
-      </ul>
-      <p v-else>No saved compositions found.</p>
-    </section>
+    
   </div>
 </template>
 
@@ -67,7 +132,7 @@ onMounted(async () => {
   padding: 5vw 3vw;
   font-family: "Comic Sans MS", cursive, sans-serif;
   color: #333;
-  position: relative; /* Needed for absolute positioning of the button */
+  position: relative;
 }
 
 .logout-button {
@@ -82,6 +147,7 @@ onMounted(async () => {
   transition: all 0.3s ease-in-out;
   background-color: #1d4ed8;
   color: white;
+  z-index: 10;
 }
 
 .logout-button:hover {
@@ -129,5 +195,50 @@ li {
 li:hover {
   transform: scale(1.02);
   color: #2563eb;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.input {
+  padding: 0.5rem;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.btn {
+  padding: 0.6rem 1rem;
+  background-color: #1d4ed8;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+
+.btn:hover {
+  background-color: #2563eb;
+}
+
+.delete-btn {
+  background-color: #e74c3c;
+}
+
+.delete-btn:hover {
+  background-color: #c0392b;
+}
+
+.toggle-deletion-btn {
+  background-color: #f39c12;
+}
+
+.toggle-deletion-btn:hover {
+  background-color: #e67e22;
 }
 </style>
