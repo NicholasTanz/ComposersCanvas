@@ -132,6 +132,7 @@ onMounted(async () => {
   font-family: "Comic Sans MS", cursive, sans-serif;
   color: #333;
   position: relative;
+  min-height: 100vh;
 }
 
 .logout-button {

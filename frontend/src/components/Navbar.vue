@@ -6,6 +6,7 @@
       <RouterLink to="/login" class="nav-link">Login</RouterLink>
       <a class="nav-link" href="/CanvasView.html">Create Composition</a>
       <RouterLink to="/profile" class="nav-link">User Profile</RouterLink>
+      <RouterLink to="/tutorial" class="nav-link">Tutorial</RouterLink> <!-- 👈 New link added -->
     </div>
   </nav>
 </template>

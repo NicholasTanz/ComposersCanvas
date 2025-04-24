@@ -44,7 +44,7 @@ export default {
   methods: {
     playbackExample() {
       console.log("Playback triggered!");
-      // Implement your playback logic here
+      // Optional
     }
   }
 };
@@ -61,6 +61,7 @@ export default {
   font-family: "Comic Sans MS", cursive, sans-serif;
   box-sizing: border-box;
   width: 100%;
+  min-height: 100vh;
 }
 
 /* Combined Section */
@@ -118,6 +119,7 @@ export default {
   font-size: 1rem;
   width: 100%;
   max-width: 300px;
+
 }
 
 .btn-primary:hover,
