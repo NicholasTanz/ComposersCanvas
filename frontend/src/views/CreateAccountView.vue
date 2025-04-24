@@ -31,6 +31,7 @@ const handleSubmit = async (event) => {
     password.value = "";
     email.value = "";
     response.value = res.data.message;
+    window.location.href = `profile`;
   } catch (error) {
     console.error("Error:", error.response?.data || error.message);
     response.value = "Error: " + (error.response?.data?.message || error.message);
