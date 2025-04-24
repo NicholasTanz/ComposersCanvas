@@ -439,10 +439,11 @@
 
         let = scoreTitle = 'Untitled Song';
         let tempo = 120;
+        window.tempoInt = tempo;
         let eq = "=";
         let tempoNote = "♩";
-        let selectedNoteIndexes = []; 
-        let lastSelectedIndex = null;
+        let selectedNoteIndexes = [0]; 
+        let lastSelectedIndex = 0;
         let dur = "q";
         let isRestMode = false; 
         let currentKeySignature = 'C'
@@ -521,6 +522,7 @@
                     currentKeySignature = data.currentKeySignature;
                     notes = data.notes;
                     tempo = data.tempo;
+                    window.tempoInt = data.tempo;
                     renderNotes(); 
                     
                     //alert("Composition fetched successfully!");
@@ -675,16 +677,17 @@
                     }
                     
                     console.log(measureNotes)
+                    let notenum = -1;
+                    for (let indexn = 0; indexn < measureIndex; indexn++) {
+                        const meas = measures[indexn];
+                        notenum = notenum + meas.length;
+                    }
+                    notenum = notenum + measureNotes.length;
+                    for (let deleteindex = 0; deleteindex < measures[measureIndex].length-measureNotes.length+1; deleteindex++) {
+                        notes.splice(notenum, 1);
+                    }
                 }
-                let notenum = -1;
-                for (let indexn = 0; indexn < measureIndex; indexn++) {
-                    const meas = measures[indexn];
-                    notenum = notenum + meas.length;
-                }
-                notenum = notenum + measureNotes.length;
-                for (let deleteindex = 0; deleteindex < measures[measureIndex].length-measureNotes.length+1; deleteindex++) {
-                    notes.splice(notenum, 1);
-                }
+                
 
                 measureWidths.push(measureStaveWidth)
                 const position = calculateStavePosition(measureWidths);
@@ -973,6 +976,7 @@
             const noteGroups = divStave.querySelectorAll("svg g.vf-stavenote");
             noteGroups.forEach((group, index) => {
                 group.addEventListener("click", (event) => {
+                    event.stopPropagation();
                     if (event.shiftKey && lastSelectedIndex !== null) {
                         selectedNoteIndexes = [];
                         const start = Math.min(lastSelectedIndex, index);
@@ -1192,8 +1196,11 @@
                     if (numerator && denominator) {
                         const num = parseInt(numerator);
                         const denom = parseInt(denominator);
+                        const validDenoms = [1, 2, 4, 8, 16]
                         if (denom <= 0 || num <= 0) {
                             alert("Sorry, numbers less than 1 are not valid in a time signature.");
+                        } else if (!validDenoms.includes(denom)){
+                            alert("Sorry, denominators other than 1, 2, 4, 8, or 16 are not valid in a time signature.");
                         } else {
                             timeSignatureNumerator = num;
                             timeSignatureDenominator = denom;
@@ -1224,6 +1231,7 @@
                 if (event.key === 'Enter') {
                     const tempoValue = tempoInput.value;
                     if (tempoValue) {
+                        window.tempoInt = tempoValue;
                         tempo = tempoValue;
                         renderNotes();
                     }
@@ -1275,7 +1283,14 @@
                 alert("Invalid key signature. Please enter a valid key signature.");
             }
         });
-
+        document.addEventListener("click", (event) => {
+            const svgElement = divStave.querySelector("svg");
+            if (!svgElement.contains(event.target) && !event.shiftKey) {
+                selectedNoteIndexes = [];
+                lastSelectedIndex = null;
+                renderNotes();
+            }
+        });
         document.getElementById("update-time").addEventListener("click", () => {
             const numerator = document.getElementById("numerator").value.trim();
             const denominator = document.getElementById("denominator").value.trim();
@@ -1369,6 +1384,7 @@
             document.getElementById('numerator').value = timeSignatureNumerator;
             document.getElementById('denominator').value = timeSignatureDenominator;
             document.getElementById('tempo').value = tempo;
+            document.getElementById('tempo').value = window.tempoInt;
         }
         
         //document.addEventListener("DOMContentLoaded", () => {
