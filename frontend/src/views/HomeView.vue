@@ -9,7 +9,7 @@
         <p class="text-lg mb-6">
           A web-based tool that allows you to create, edit, and save musical compositions on a virtual canvas using VexFlow.
         </p>
-        <a href="#" class="btn-primary mb-10">Start Composing</a>
+        <a href="/CanvasView.html" class="btn-primary mb-10">Start Composing</a>
 
         <h2 class="text-2xl font-bold text-blue-500 mb-2">Visualize Your Music</h2>
         <p class="text-md text-gray-700">
@@ -20,7 +20,7 @@
       <div class="right-content">
         <img src="/music-visual.gif" alt="Music Visualization" />
         <button @click="playbackExample" class="playback-button">
-          Playback Example
+          View Tutorial
         </button>
       </div>
     </div>
@@ -43,8 +43,7 @@ export default {
   },
   methods: {
     playbackExample() {
-      console.log("Playback triggered!");
-      // Optional
+      this.$router.push('/tutorial');
     }
   }
 };
