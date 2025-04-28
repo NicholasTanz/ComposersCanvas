@@ -74,7 +74,7 @@ onMounted(async () => {
     <h1>User Profile</h1>
     <p v-if="authStore.isAuthenticated">
       You are logged in!
-      <button class="logout-button" @click="authStore.logout">Logout</button>
+      <button class="btn logout-btn" @click="authStore.logout">Logout</button>
       <!-- Saved Compositions Section -->
       <section v-if="authStore.isAuthenticated">
         <h2>Your Saved Compositions</h2>
@@ -222,7 +222,7 @@ li:hover {
   margin-top: 0.5rem;
 }
 
-.btn:hover {
+.logout-btn:hover {
   background-color: #2563eb;
 }
 
