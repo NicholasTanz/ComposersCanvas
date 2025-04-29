@@ -20,6 +20,7 @@ services:
     environment:
       - FLASK_RUN_HOST=0.0.0.0
       - FLASK_RUN_PORT=5000
+      - IS_DEVELOPMENT=True
       - DATABASE_URL=postgresql://username:password@db:5432/music_composer
       - SECRET_KEY=9c77b62fd66e33db11d4e6e088d77e0d014151091fd40d85392a412a47bc4003
       - CORS_ORIGINS=http://localhost:5173
