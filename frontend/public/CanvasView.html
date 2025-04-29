@@ -13,6 +13,8 @@
             padding-top: 80px; 
             background: #d9e9f4; 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            justify-content: center;
+            overflow-x: hidden; 
           }
       
         .fixed-toolbar {
@@ -320,6 +322,7 @@
         .invisible-buttons {
         display: none !important;
         }
+        
         </style>
       </head>
       <body>
@@ -421,13 +424,12 @@
           </div>
           
           
-        <div id="my-stave"></div>           
+        <div id="my-stave" class="container"></div>           
     <script>
         const VF = Vex.Flow;
         const divStave = document.getElementById("my-stave");
         const renderer = new VF.Renderer(divStave, VF.Renderer.Backends.SVG);
         const context = renderer.getContext();
-
         
 
         // Initial notes array
@@ -663,17 +665,20 @@
             let measureWidths = []
             for (let measureIndex = 0; measureIndex < measures.length; measureIndex++) {
                 let measureNotes = measures[measureIndex];
-                staveWidth = (100 * measureNotes.length) 
-                let measureStaveWidth = firstMeasure ? staveWidth+keysigadd+ keysignum[currentKeySignature]*35 : staveWidth; // Make first measure larger\
+                staveWidth = (50 * measureNotes.length) 
+                let measureStaveWidth = firstMeasure ? staveWidth+keysigadd+ keysignum[currentKeySignature]*20 +100: staveWidth; // Make first measure larger\
+                if (firstMeasure) {
+                    firstMeasure = false;
+                }
                 if (window.innerWidth < measureStaveWidth) {
                     alert("Sorry, your screen is too small for the measure.");
                     console.log(measureNotes)
-                    while(window.innerWidth < measureStaveWidth) {
+                    while(window.innerWidth-100 < measureStaveWidth) {
                         if (measureNotes.length > 0) {
                             measureNotes = measureNotes.slice(0, measureNotes.length - 1);
                         }
-                        staveWidth = (100 * measureNotes.length);
-                        measureStaveWidth = firstMeasure ? staveWidth+keysigadd+ keysignum[currentKeySignature]*35 : staveWidth; 
+                        staveWidth = (50 * measureNotes.length);
+                        measureStaveWidth = firstMeasure ? staveWidth+keysigadd+ keysignum[currentKeySignature]*20 : staveWidth; 
                     }
                     
                     console.log(measureNotes)
@@ -690,8 +695,62 @@
                 
 
                 measureWidths.push(measureStaveWidth)
-                const position = calculateStavePosition(measureWidths);
+            }
+            let availableWidth = window.innerWidth - 100; // Total available width (context)
 
+            // Step 1: Distribute measures into rows based on available width
+            let rows = [];
+            let currentRow = [];
+            let currentRowWidth = 0;
+
+            for (let i = 0; i < measureWidths.length; i++) {
+                let measureWidth = measureWidths[i];
+
+                // If adding this measure exceeds the available width, start a new row
+                if (currentRowWidth + measureWidth > availableWidth) {
+                    rows.push(currentRow); // Push the current row into rows
+                    currentRow = [measureWidth]; // Start a new row with the current measure
+                    currentRowWidth = measureWidth; // Reset row width to the current measure
+                } else {
+                    currentRow.push(measureWidth); // Add the measure to the current row
+                    currentRowWidth += measureWidth; // Update the current row width
+                }
+            }
+
+            // Add the last row if any
+            if (currentRow.length > 0) {
+                rows.push(currentRow);
+            }
+
+            // Step 2: Scale the widths of the measures in each row except the last one
+            measureWidths = []; // Reset measureWidths to hold the scaled values
+
+            rows.forEach((row, index) => {
+                if (index < rows.length - 1) {
+                    // If it's not the last row, scale the measures
+                    let rowTotalWidth = row.reduce((acc, width) => acc + width, 0); // Total width of current row
+                    let scalingFactor = availableWidth / rowTotalWidth; // Scaling factor to fit the row within the available width
+
+                    // Scale each measure width in the row and update measureWidths directly
+                    row.forEach(width => {
+                        measureWidths.push(Math.round(width * scalingFactor)-1); // Directly push the scaled width to measureWidths
+                    });
+                } else {
+                    // If it's the last row, don't scale, just push the original measure widths
+                    row.forEach(width => {
+                        measureWidths.push(width); // Add the original width without scaling
+                    });
+                }
+            });
+            firstMeasure = true; 
+            for (let measureIndex = 0; measureIndex < measures.length; measureIndex++) {
+                let measureNotes = measures[measureIndex];
+                let measureStaveWidth = measureWidths[measureIndex]
+                let position = {x: 0, y: 20}
+                if (measureIndex != 0) {
+                    position = calculateStavePosition(measureWidths.slice(0, measureIndex+1));
+                    console.log(position);
+                } 
                 let pdfPosY = 0;
                 if(pdf) {
                     pdfPosY = 75;
@@ -708,7 +767,7 @@
 
                 // Fixed time signature: 4 beats per measure
                 const voice = new VF.Voice({ num_beats: timeSignatureNumerator, beat_value: timeSignatureDenominator });
-                voice.setStrict(false); 
+                //voice.setStrict(false); 
                 const brackets = []; // Store 8va brackets
                 let firstHighNote = null;
                 let lastHighNote = null;
@@ -807,11 +866,12 @@
                 voice.addTickables(measureTickables);
                 VF.Accidental.applyAccidentals([voice], currentKeySignature);
                 if (measureIndex == 0) {
-                    new VF.Formatter({ softmaxFactor: 1 }).joinVoices([voice]).format([voice], measureStaveWidth - 50);
+                    const formatter = new VF.Formatter({ softmaxFactor: 1 }).joinVoices([voice]).format([voice], measureStaveWidth-100);
                 } else {
-                    new VF.Formatter({ softmaxFactor: 1 }).joinVoices([voice]).format([voice], measureStaveWidth);
+                    const formatter = new VF.Formatter({ softmaxFactor: 1 }).joinVoices([voice]).format([voice], measureStaveWidth);
                 }
-                
+                console.log("Voice complete?", voice.isComplete());
+                console.log("Total ticks:", voice.getTotalTicks().toString());
                 voice.draw(context, stave);
                 brackets.forEach(bracket => bracket.setContext(context).draw());
                 if (Array.isArray(beams)) {
@@ -946,7 +1006,7 @@
 
         // Calculate stave positions
         function calculateStavePosition(measureWidths) {
-            const screenWidth = window.innerWidth;
+            const screenWidth = window.innerWidth - 50;
             let x_value = 0; 
             let y_value = 20;
             let rowIndex = 1;
