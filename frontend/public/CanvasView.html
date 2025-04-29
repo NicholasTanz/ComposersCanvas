@@ -483,7 +483,8 @@
         let staveWidth = 100*timeSignatureNumerator;
         let rowSpacing = 150;
         let totalRows = 1;
-        window.instrument = instrumentDropdown.value; // Change this
+        window.instrument = document.getElementById('instrumentDropdown').value; // Change this
+        
         const tutorialBtn = document.getElementById('tutorial-btn');
         const tutorialContainer = document.getElementById('tutorial-container');
 
@@ -1255,7 +1256,7 @@
             const numeratorInput = document.getElementById('numerator');
             const denominatorInput = document.getElementById('denominator');
             const tempoInput = document.getElementById('tempo');
-
+            const instrumentInput = document.getElementById('instrumentDropdown')
             // Event listener for "Enter" key on settings inputs
             scoreTitleInput.addEventListener('keydown', (event) => {
                 if (event.key === 'Enter') {
@@ -1263,7 +1264,11 @@
                     renderNotes(); 
                 }
             });
-
+            instrumentInput.addEventListener('click', (event) => { 
+                window.instrument = instrumentInput.value;
+                renderNotes();
+                
+            });
             keySignatureInput.addEventListener('keydown', (event) => {
                 if (event.key === 'Enter') {
                     const inputKey = keySignatureInput.value.trim();
@@ -1344,11 +1349,11 @@
             });
 
             // Close dropdown when clicking anywhere outside
-            document.addEventListener("click", (event) => {
-                if (!noteSelection.contains(event.target)) {
-                    noteOptions.style.display = "none";
-                }
-            });
+            //document.addEventListener("click", (event) => {
+             //   if (!noteSelection.contains(event.target)) {
+             //       noteOptions.style.display = "none";
+              //  }
+            //});
         });
         document.getElementById("rest-button").addEventListener("click", () => {
             isRestMode = !isRestMode; 
@@ -1444,7 +1449,7 @@
 
         renderNotes();
     </script>
-    <script src="ToneJS.js"></script>
+    <script src="ToneJS2.js"></script>
     <script>
         document.getElementById("doc-gen").addEventListener("click", () => {
             const staves = document.getElementById("my-stave");
@@ -1474,6 +1479,7 @@
             document.getElementById('denominator').value = timeSignatureDenominator;
             document.getElementById('tempo').value = tempo;
             document.getElementById('tempo').value = window.tempoInt;
+            document.getElementById('instrumentDropdown').value = window.instrument;
         }
         
         //document.addEventListener("DOMContentLoaded", () => {
