@@ -1,15 +1,71 @@
-// A more advanced Tone.js test
-// Make sure Tone is installed from npm (?)
-//import * as Tone from 'tone';
+/*
+Synth: A basic synthesizer with customizable oscillator and envelope.
+MembraneSynth: A synthesizer that simulates a drum membrane. Very Funny but impractical and annoying.
+MetalSynth: A synthesizer that simulates metallic percussion.
+*/
 
-// ToDo: All done.
+//let synth = new Tone.Synth().toDestination();
 
-// Create a synth and connect it to the main output
-const synth = new Tone.Synth().toDestination();
-// const clock = new Tone.Clock(time => {
-//     console.log(time);
-// }, 1);
+// Sounds are loaded from tonejs-instruments. The zips were downloaded off https://observablehq.com/@esperanc/tone-js-instruments. All credit to them.
+const sound_map = {
+    "Bass (Electric)": ["bass-electric", "E1", "E2", "E3", "E4", "G1", "G2", "G3", "G4"],
+    "Bassoon": ["bassoon", "A2", "A3", "A4", "C3", "C4", "C5", "E4", "G2", "G3", "G4"],
+    "Cello": ["cello", "C3", "D3", "E3", "F3", "G3", "A3", "B3", "C4", "D4", "E4", "F4", "G4", "A4", "B4"],
+    "Clarinet": ["clarinet", "D3", "D4", "D5", "D6", "F3", "F4", "F5"],
+    "Double Bass": ["contrabass", "A2", "B3", "C2", "D2", "E2", "E3", "G1"],
+    "Flute": ["flute", "A4", "A5", "A6", "C4", "C5", "C6", "C7", "E4", "E5", "E6"],
+    "French Horn": ["french-horn", "A1", "A3", "C2", "C4", "D3", "D5", "F3", "F5", "G2"],
+    "Guitar (Acoustic)": ["guitar-acoustic", "C3", "D3", "E3", "F3", "G3", "A3", "B3", "C4", "D4", "E4", "F4", "G4", "A4", "B4"],
+    "Guitar (Electric)": ["guitar-electric", "A2", "A3", "A4", "A5", "C3", "C4", "C5", "C6", "E2"],
+    "Guitar (Nylon)": ["guitar-nylon", "D3", "E3", "G3", "A3", "B3", "D5", "E4", "G5", "A4", "B4"],
+    "Harmonium": ["harmonium", "C3", "D3", "E3", "F3", "G3", "A3", "B3", "C4", "D4", "E4", "F4", "G4", "A4", "B4"],
+    "Harp": ["harp", "A4", "B3", "B5", "C3", "C5", "D4", "E3", "E5", "F4", "G3", "G5"],
+    "Organ": ["organ", "A1", "A2", "A3", "A4", "C1", "C2", "C3", "C4", "C5", "C6"],
+    "Piano": ["piano", "C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5", "D5", "E5", "F5", "G5", "A5", "B5"],
+    "Saxophone": ["saxophone", "C4", "D4", "E4", "F4", "G4", "A4", "B4", "C5", "D5"],
+    "Trombone": ["trombone", "C3", "C4", "D3", "D4", "F2", "F3", "F4"],
+    "Trumpet": ["trumpet", "A3", "A5", "C4", "C6", "D5", "F3", "F4", "F5", "G4"],
+    "Tuba": ["tuba", "D3", "D4", "F1", "F2", "F3"],
+    "Violin": ["violin", "A3", "A4", "A5", "A6", "C4", "C5", "C6", "E4", "E5", "E6", "G4", "G5", "G6"],
+    "Xylophone": ["xylophone", "C5", "C6", "C7", "C8", "G4", "G5", "G6", "G7"]
+}
 
+/*
+const instruments = ["Bass (Electric)", "Bassoon", "Cello", "Clarinet", "Double Bass", "Flute", "French Horn", "Guitar (Acoustic)", "Guitar (Electric)", "Guitar (Nylon)", "Harmonium", "Harp", "Organ", "Piano", "Saxophone", "Trombone", "Trumpet", "Tuba", "Violin", "Xylophone"];
+*/
+
+
+// Scrapped last second. Sorry.
+//let isPlaying = false; // Flag to track if the music is playing
+//let isPaused = false; // Flag to track if the music is paused
+// If playing is true, it is playing.
+// If paused is true, it is paused.
+// If both are false, it is stopped.
+// Both cannot be true.
+
+
+function createToneSampler(soundMap) {
+    // Create the urls dictionary for the given notes
+    const urls = {};
+    soundMap.slice(1).forEach(note => {
+        urls[note] = `${note}.ogg`;
+    });
+
+    // Generate the Tone.Sampler initialization code
+    const sampler = new Tone.Sampler({
+        urls: urls,
+        baseUrl: `./sounds/${soundMap[0]}/`
+    }).toDestination();
+
+    return sampler;
+}
+
+
+
+
+//var synth = window.instrument;
+//console.log("Synth:", synth);
+    
 function autoRestartTone() {
     if (Tone.getContext().state !== "running") {
         Tone.start().then(() => console.log("Tone.js restarted automatically!"));
@@ -148,11 +204,21 @@ function stopTime (sequence, timeSignatureNum, timeSignatureDenom){
 
 async function playMusic() {
 
+    let instrument = "Piano"; // Default instrument
+    console.log("Instrument Window:", window.instrument);
+    if (window.instrument != undefined) {
+        instrument = window.instrument;
+    } else {
+        instrument = "Piano"; // Default instrument
+    }
+    // Generate the Tone.Sampler for the given instrument and notes
+    let synth = createToneSampler(sound_map[instrument]);
+
     sequence = convertVtoT(window.vexNotes, window.timeSignNum, window.timeSignDenom);
     console.log(sequence);
     const transport = Tone.getTransport(); // Can be removed.
 
-    synth.volume.value = 0; // Unmute the synth
+    //synth.volume.value = 0; // Unmute the synth
     transport.stop();
     transport.position = "0:0:0"; // Reset transport to start
     transport.cancel();
@@ -160,9 +226,11 @@ async function playMusic() {
     let timeSig = [4, 4]; // Default time signature
     if(window.timeSignNum == undefined || window.timeSignDenom == undefined) {
         transport.timeSignature = [4, 4]; // Default time signature
+        console.log("Time Sign Undefined");
     } else {
         transport.timeSignature = [window.timeSignNum, window.timeSignDenom]; // Set time signature
         timeSig = [window.timeSignNum, window.timeSignDenom];
+        console.log("Time Sign Defined");
     }
     console.log("Time Signature:", transport.timeSignature);
     
@@ -185,11 +253,18 @@ async function playMusic() {
     if (window.tempoInt == undefined) {
         const adjustedBPM = 120 / (timeSig[1] / 4);
         transport.bpm.value = adjustedBPM; // Set the tempo
+        console.log("Undef BPM:", transport.bpm.value);
     } else {
-        const adjustedBPM = window.tempoInt / ( timeSig[1] / 4);
+        /*const adjustedBPM = window.tempoInt / ( timeSig[1] / 4);
         transport.bpm.value = adjustedBPM; // Set the tempo
+        console.log("Defined BPM:", transport.bpm.value);
+        console.log("Tempo Int:", window.tempoInt);
+        console.log("Time sign:", timeSig);
+        console.log("Transport Beats per Measure. Based on quarters.", transport.timeSignature);
+        console.log("window.timeSignDenom:",  window.timeSignDenom);*/
+        transport.bpm.value = window.tempoInt; // Set the tempo
+        console.log("Defined BPM:", transport.bpm.value);
     }
-    console.log("Adjusted BPM:", transport.bpm.value);
     part.start(0);
     part.loop = 0;
 
@@ -202,15 +277,38 @@ async function playMusic() {
 
     transport.schedule((lnt) => {
         // Reset transport to end
-        synth.volume.value = -Infinity; // Mute the synth
+        //synth.volume.value = -Infinity; // Mute the synth
         console.log("Transport stopped after last note.");
     }, lastNoteTime);
 
+    // Change button back to play icon
+    const playButton = document.getElementById('play-button');
+    isPlaying = false; // Set the playing flag to true
+    isPaused = false; // Set the paused flag to false
+    playButton.src = "images/play.svg";
+    playButton.alt = "Play";
 }
 
 function pauseMusic() {
     Tone.getTransport().pause();
-    //console.log('State is:', Tone.getContext().state);
+}
+
+function resumeMusic() {
+    Tone.getTransport().start();
+}
+
+function stopMusic() {
+
+    const playButton = document.getElementById('play-button');
+
+    Tone.getTransport().stop();
+    Tone.getTransport().position = "0:0:0"; // Reset transport to start
+    Tone.getTransport().cancel();
+    
+    isPlaying = false; // Set the playing flag to false
+    isPaused = false; // Set the paused flag to false
+    playButton.src = "images/play.svg"; // Set the play button to play icon
+    playButton.alt = "Play"; // Set the play button alt text to play
 }
 
 // const vexSequence = [
@@ -325,5 +423,47 @@ const oldSequence = [
     ["1:3", "C3", "1n"]   // Play C3 for a whole note at time 1:3
 ];*/
 
+/*  Not enough time. Maybe someone in the future can implement this?
+function togglePlayPause() {
+    const playButton = document.getElementById('play-button');
+
+    if (!isPlaying && !isPaused) {          // Nothing right now. Set to play. Icon is pause.
+        playButton.src = "images/pause.svg";
+        playButton.alt = "Pause";
+        isPlaying = true; // Set the playing flag to true
+        isPaused = false; // Set the paused flag to false
+        console.log("Should Play");
+        playMusic();
+    } else if (isPlaying && !isPaused) {    // Playing right now. Set to pause. Icon is resume.
+        playButton.src = "images/resume.png";
+        playButton.alt = "Resume"; // Set the play button alt text to pause
+        isPlaying = false; // Set the playing flag to true
+        isPaused = true; // Set the paused flag to false
+        console.log("Should Pause");
+        pauseMusic();
+    } else if (!isPlaying && isPaused) {    // Paused right now. Set to resume. Icon is pause.
+        playButton.src = "images/pause.svg";
+        playButton.alt = "Pause"; // Set the play button alt text to pause
+        isPlaying = true; // Set the playing flag to true
+        isPaused = false; // Set the paused flag to false
+        console.log("Should Play from Resume");
+        resumeMusic();
+    } else {                                // Why are both true? Just set it to play again idk.
+        playButton.src = "images/play.svg";
+        playButton.alt = "Play";
+        isPlaying = false; // Set the playing flag to true
+        isPaused = false; // Set the paused flag to false
+        stopMusic();
+    }
+}
+
+function changeImg() {
+    const playButton = document.getElementById('play-button');
+    playButton.src = "images/pause.svg";
+    playButton.alt = "Pause";
+} */
+
+
 document.getElementById('play-button').addEventListener('click', playMusic);
 document.getElementById('pause-button').addEventListener('click', pauseMusic);
+

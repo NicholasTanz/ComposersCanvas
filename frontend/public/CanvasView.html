@@ -411,6 +411,34 @@
           
               <div class="settings-row">
                 <div class="input-group" style="flex: 1;">
+                    <label for="instrumentDropdown">Instrument:</label>
+                    <select id="instrumentDropdown" name="instrument">
+                        <option value="Bass (Electric)">Bass (Electric)</option>
+                        <option value="Bassoon">Bassoon</option>
+                        <option value="Cello">Cello</option>
+                        <option value="Clarinet">Clarinet</option>
+                        <option value="Double Bass">Double Bass</option>
+                        <option value="Flute">Flute</option>
+                        <option value="French Horn">French Horn</option>
+                        <option value="Guitar (Acoustic)">Guitar (Acoustic)</option> <!-- Default option -->
+                        <option value="Guitar (Electric)">Guitar (Electric)</option>
+                        <option value="Guitar (Nylon)">Guitar (Nylon)</option>
+                        <option value="Harmonium">Harmonium</option>
+                        <option value="Harp">Harp</option>
+                        <option value="Organ">Organ</option>
+                        <option value="Piano" selected>Piano</option>
+                        <option value="Saxophone">Saxophone</option>
+                        <option value="Trombone">Trombone</option>
+                        <option value="Trumpet">Trumpet</option>
+                        <option value="Tuba">Tuba</option>
+                        <option value="Violin">Violin</option>
+                        <option value="Xylophone">Xylophone</option>
+                    </select>
+                </div>
+              </div>
+
+              <div class="settings-row">
+                <div class="input-group" style="flex: 1;">
                   <button id="doc-gen">Generate Pdf</button>
                 </div>
               </div>
@@ -455,6 +483,7 @@
         let staveWidth = 100*timeSignatureNumerator;
         let rowSpacing = 150;
         let totalRows = 1;
+        windows.instrument = instrumentDropdown.value; // Sorry this doesn't work :(
         const tutorialBtn = document.getElementById('tutorial-btn');
         const tutorialContainer = document.getElementById('tutorial-container');
 
