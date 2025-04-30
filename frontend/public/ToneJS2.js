@@ -43,13 +43,33 @@ const instruments = ["Bass (Electric)", "Bassoon", "Cello", "Clarinet", "Double 
 // If both are false, it is stopped.
 // Both cannot be true.
 
+// function waitSampler(sampler) {
+//     return new Promise((resolve) => {
+//         if (sampler.loaded) {
+//             // If the sampler is already loaded, resolve immediately
+//             resolve();
+//         } else {
+//             sampler.onload = () => {
+//                 resolve();
+//             };
+//         }
+//     });
+// }
+
+// let samplerLoaded = false;
+// function samplerLoadCheck() {
+//     samplerLoaded = true;
+//     console.log("Sampler loaded!");
+// }
 
 function createToneSampler(soundMap) {
+    //samplerLoaded = false;
     // Create the urls dictionary for the given notes
     const urls = {};
     soundMap.slice(1).forEach(note => {
         urls[note] = `${note}.ogg`;
     });
+    //console.log("Sound Map:", soundMap.slice(1));
 
     // Generate the Tone.Sampler initialization code
     const sampler = new Tone.Sampler({
@@ -61,52 +81,12 @@ function createToneSampler(soundMap) {
 }
 
 
-
-
-//var synth = window.instrument;
-//console.log("Synth:", synth);
-    
 function autoRestartTone() {
     if (Tone.getContext().state !== "running") {
         Tone.start().then(() => console.log("Tone.js restarted automatically!"));
     }
 }
-/*
-function getDuration(timeString, duration, tempo) {
-    // Split the string by colon
-    const parts = timeString.split(':');
 
-    // Parse measures, beats, and sixteenths
-    var measures = parseInt(parts[0]); // im not a jshead
-    var beats = (parts.length >= 2) ? parseInt(parts[1]) : 0;
-    var sixteenths = parts.length === 3 ? parseInt(parts[2]) : 0;
-
-    // For now, no measure overflow.
-    // Shouldn't matter, as we are just calculating total time.
-    if (duration === "1n") {
-        beats += 4;
-    } else if (duration === "2n.") {
-        beats += 3;
-    } else if (duration === "2n") {
-        beats += 2;
-    } else if (duration === "4n") {
-        beats += 1;
-    } else if (duration === "8n") {
-        sixteenths += 2;
-    } else if (duration === "16n") {
-        sixteenths += 1;
-    }
-
-    // Currently, time signature is 4 to a measure.
-    const total = measures * 4 + beats + sixteenths / 4;
-    //console.log(total);
-    // Calculate the total time in seconds
-    const seconds = total * 60 / tempo;
-    //console.log(seconds);
-
-    return Math.ceil(seconds);
-}
-*/
 // Listen for state changes and restart if needed
 Tone.getContext().rawContext.onstatechange = () => {
     if (Tone.getContext().rawContext.state === "suspended") {
@@ -114,37 +94,6 @@ Tone.getContext().rawContext.onstatechange = () => {
     }
 };
 
-// Function to create and play a Tone.Part
-// Most likely, issue is to change this function to be added to a button instead of calling functions
-// function playSequence(sequence) {
-//     // Convert the input sequence into a format that Tone.Part understands
-//     const partData = sequence.map(([time, note, duration]) => [time, { note, duration }]);
-
-//     // Create a Tone.Part
-//     const part = new Tone.Part((time, value) => {
-//         synth.triggerAttackRelease(value.note, value.duration, time);
-
-//         if (value.isLast) {
-//             part.stop();
-//             console.log("Part stopped after last note.");
-//         }
-//     }, partData);
-
-//     // Configure the part
-//     // part.loop = 1;       // Number of loops (optional)
-//     // part.loopEnd = "1m"; // Duration of the loop (optional)
-
-//     // Start the transport and the part
-//     const transport = Tone.getTransport();
-//     // const context = Tone.getContext();
-//     // if (context.state !== "running") {
-//     //     context.resume();
-//     // }
-//     transport.bpm.value = tempoSlider.value; // Set the tempo
-//     part.start(0);
-//     transport.start();
-//     //clock.start();
-// }
 
 // Example sequence: [time, note, duration]
 
@@ -168,7 +117,7 @@ function stopTime (sequence, timeSignatureNum, timeSignatureDenom){
     // Pretty sure this is correct. Make sure to double check with musical people xD
     // Used to use sixteenths per beat, but that is wrong.
     if (duration === "1n") {
-        durationInSixteenths = 16
+        durationInSixteenths = 16;
     } else if (duration === "2n.") {
         durationInSixteenths = 12;
     } else if (duration === "2n") {
@@ -204,6 +153,15 @@ function stopTime (sequence, timeSignatureNum, timeSignatureDenom){
 
 async function playMusic() {
 
+    // Generate the Tone.Sampler for the given instrument and notes
+    sequence = convertVtoT(window.vexNotes, window.timeSignNum, window.timeSignDenom);
+    console.log(sequence);
+    const transport = Tone.getTransport(); // Can be removed.
+
+    transport.stop();
+    transport.position = "0:0:0"; // Reset transport to start
+    transport.cancel();
+
     let instrument = "Piano"; // Default instrument
     console.log("Instrument Window:", window.instrument);
     if (window.instrument != undefined) {
@@ -211,18 +169,12 @@ async function playMusic() {
     } else {
         instrument = "Piano"; // Default instrument
     }
-    // Generate the Tone.Sampler for the given instrument and notes
+    
     let synth = createToneSampler(sound_map[instrument]);
 
-    sequence = convertVtoT(window.vexNotes, window.timeSignNum, window.timeSignDenom);
-    console.log(sequence);
-    const transport = Tone.getTransport(); // Can be removed.
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    synth.volume.value = 0; // Unmute the synth. This is also needed since there was a bug where the synth would blast the speakers randomly.
 
-    //synth.volume.value = 0; // Unmute the synth
-    transport.stop();
-    transport.position = "0:0:0"; // Reset transport to start
-    transport.cancel();
-    
     let timeSig = [4, 4]; // Default time signature
     if(window.timeSignNum == undefined || window.timeSignDenom == undefined) {
         transport.timeSignature = [4, 4]; // Default time signature
@@ -234,7 +186,6 @@ async function playMusic() {
     }
     console.log("Time Signature:", transport.timeSignature);
     
-
     await Tone.start(); // Ensure AudioContext is started
 
     // Convert the input sequence into a format that Tone.Part understands
@@ -255,15 +206,14 @@ async function playMusic() {
         transport.bpm.value = adjustedBPM; // Set the tempo
         console.log("Undef BPM:", transport.bpm.value);
     } else {
-        /*const adjustedBPM = window.tempoInt / ( timeSig[1] / 4);
+        const adjustedBPM = window.tempoInt / ( timeSig[1] / 4);
         transport.bpm.value = adjustedBPM; // Set the tempo
-        console.log("Defined BPM:", transport.bpm.value);
-        console.log("Tempo Int:", window.tempoInt);
-        console.log("Time sign:", timeSig);
-        console.log("Transport Beats per Measure. Based on quarters.", transport.timeSignature);
-        console.log("window.timeSignDenom:",  window.timeSignDenom);*/
-        transport.bpm.value = window.tempoInt; // Set the tempo
-        console.log("Defined BPM:", transport.bpm.value);
+        // console.log("Tempo Int:", window.tempoInt);
+        // console.log("Time sign:", timeSig);
+        // console.log("Transport Beats per Measure. Based on quarters.", transport.timeSignature);
+        // console.log("window.timeSignDenom:",  window.timeSignDenom);
+        // transport.bpm.value = window.tempoInt; // Set the tempo
+        // console.log("Defined BPM:", transport.bpm.value);
     }
     part.start(0);
     part.loop = 0;
@@ -277,14 +227,12 @@ async function playMusic() {
 
     transport.schedule((lnt) => {
         // Reset transport to end
-        //synth.volume.value = -Infinity; // Mute the synth
+        synth.volume.value = -Infinity; // Mute the synth
         console.log("Transport stopped after last note.");
     }, lastNoteTime);
 
     // Change button back to play icon
     const playButton = document.getElementById('play-button');
-    isPlaying = false; // Set the playing flag to true
-    isPaused = false; // Set the paused flag to false
     playButton.src = "images/play.svg";
     playButton.alt = "Play";
 }
@@ -305,8 +253,6 @@ function stopMusic() {
     Tone.getTransport().position = "0:0:0"; // Reset transport to start
     Tone.getTransport().cancel();
     
-    isPlaying = false; // Set the playing flag to false
-    isPaused = false; // Set the paused flag to false
     playButton.src = "images/play.svg"; // Set the play button to play icon
     playButton.alt = "Play"; // Set the play button alt text to play
 }

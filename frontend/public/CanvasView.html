@@ -349,7 +349,7 @@
               <img src="images/play.svg" alt="Play" style="width: 40px; height: 40px;">
             </button>
             <button id="pause-button">
-              <img src="images/pause.svg" alt="Pause" style="width: 40px; height: 40px;">
+              <img src="images/pause.svg" alt="Stop" style="width: 40px; height: 40px;">
             </button>
             
             <div class="tutorial-container" id="tutorial-container">
@@ -497,6 +497,8 @@
         const scoreTitle = document.getElementById('score-title').value;
         const timeSignatureNumerator = document.getElementById("numerator").value.trim();
         const timeSignatureDenominator = document.getElementById("denominator").value.trim();
+        window.timeSignNum = timeSignatureNumerator;
+        window.timeSignDenom = timeSignatureDenominator;
         const currentKeySignature =  document.getElementById("key-signature").value.trim();
         const tempo = document.getElementById('tempo').value / (document.getElementById("denominator").value / 4);
         const composition = {
@@ -555,6 +557,8 @@
                     notes = data.notes;
                     tempo = data.tempo;
                     window.tempoInt = data.tempo;
+                    window.timeSignNum = data.timeSignatureNumerator;
+                    window.timeSignDenom = data.timeSignatureDenominator;
                     renderNotes(); 
                     
                     //alert("Composition fetched successfully!");
@@ -1256,7 +1260,7 @@
             const numeratorInput = document.getElementById('numerator');
             const denominatorInput = document.getElementById('denominator');
             const tempoInput = document.getElementById('tempo');
-            const instrumentInput = document.getElementById('instrumentDropdown')
+            const instrumentInput = document.getElementById('instrumentDropdown');
             // Event listener for "Enter" key on settings inputs
             scoreTitleInput.addEventListener('keydown', (event) => {
                 if (event.key === 'Enter') {
@@ -1298,6 +1302,8 @@
                         } else {
                             timeSignatureNumerator = num;
                             timeSignatureDenominator = denom;
+                            window.timeSignNum = num;
+                            window.timeSignDenom = denom;
                             renderNotes(); 
                         }
                     }
@@ -1315,6 +1321,8 @@
                         } else {
                             timeSignatureNumerator = num;
                             timeSignatureDenominator = denom;
+                            window.timeSignNum = num;
+                            window.timeSignDenom = denom;
                             renderNotes(); 
                         }
                     }
@@ -1477,6 +1485,8 @@
             document.getElementById('key-signature').value = currentKeySignature;
             document.getElementById('numerator').value = timeSignatureNumerator;
             document.getElementById('denominator').value = timeSignatureDenominator;
+            window.timeSignDenom = timeSignatureDenominator;
+            window.timeSignNum = timeSignatureNumerator;
             document.getElementById('tempo').value = tempo;
             document.getElementById('tempo').value = window.tempoInt;
             document.getElementById('instrumentDropdown').value = window.instrument;
