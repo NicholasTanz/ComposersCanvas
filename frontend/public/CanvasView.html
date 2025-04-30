@@ -500,7 +500,8 @@
         window.timeSignNum = timeSignatureNumerator;
         window.timeSignDenom = timeSignatureDenominator;
         const currentKeySignature =  document.getElementById("key-signature").value.trim();
-        const tempo = document.getElementById('tempo').value / (document.getElementById("denominator").value / 4);
+        const tempo = window.tempoInt;
+        const instrument_save = window.instrument;
         const composition = {
             name: name,
             scoreTitle: scoreTitle,
@@ -508,9 +509,10 @@
             timeSignatureDenominator: timeSignatureDenominator,
             currentKeySignature:  currentKeySignature,
             tempo: tempo,
+            instrument: instrument_save,
             notes: notes  
         };
-        if (name && scoreTitle && timeSignatureNumerator && timeSignatureDenominator && currentKeySignature && tempo && notes) {
+        if (name && scoreTitle && timeSignatureNumerator && timeSignatureDenominator && currentKeySignature && tempo && instrument_save && notes) {
             try {
                 axios.post(backendUrl+"/store_composition", {
                     composition: composition
@@ -556,6 +558,7 @@
                     currentKeySignature = data.currentKeySignature;
                     notes = data.notes;
                     tempo = data.tempo;
+                    window.instrument = data.instrument;
                     window.tempoInt = data.tempo;
                     window.timeSignNum = data.timeSignatureNumerator;
                     window.timeSignDenom = data.timeSignatureDenominator;
