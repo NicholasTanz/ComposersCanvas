@@ -349,7 +349,7 @@
               <img src="images/play.svg" alt="Play" style="width: 40px; height: 40px;">
             </button>
             <button id="pause-button">
-              <img src="images/pause.svg" alt="Pause" style="width: 40px; height: 40px;">
+              <img src="images/pause.svg" alt="Stop" style="width: 40px; height: 40px;">
             </button>
             
             <div class="tutorial-container" id="tutorial-container">
@@ -411,6 +411,34 @@
           
               <div class="settings-row">
                 <div class="input-group" style="flex: 1;">
+                    <label for="instrumentDropdown">Instrument:</label>
+                    <select id="instrumentDropdown" name="instrument">
+                        <option value="Bass (Electric)">Bass (Electric)</option>
+                        <option value="Bassoon">Bassoon</option>
+                        <option value="Cello">Cello</option>
+                        <option value="Clarinet">Clarinet</option>
+                        <option value="Double Bass">Double Bass</option>
+                        <option value="Flute">Flute</option>
+                        <option value="French Horn">French Horn</option>
+                        <option value="Guitar (Acoustic)">Guitar (Acoustic)</option> <!-- Default option -->
+                        <option value="Guitar (Electric)">Guitar (Electric)</option>
+                        <option value="Guitar (Nylon)">Guitar (Nylon)</option>
+                        <option value="Harmonium">Harmonium</option>
+                        <option value="Harp">Harp</option>
+                        <option value="Organ">Organ</option>
+                        <option value="Piano" selected>Piano</option>
+                        <option value="Saxophone">Saxophone</option>
+                        <option value="Trombone">Trombone</option>
+                        <option value="Trumpet">Trumpet</option>
+                        <option value="Tuba">Tuba</option>
+                        <option value="Violin">Violin</option>
+                        <option value="Xylophone">Xylophone</option>
+                    </select>
+                </div>
+              </div>
+
+              <div class="settings-row">
+                <div class="input-group" style="flex: 1;">
                   <button id="doc-gen">Generate Pdf</button>
                 </div>
               </div>
@@ -455,6 +483,8 @@
         let staveWidth = 100*timeSignatureNumerator;
         let rowSpacing = 150;
         let totalRows = 1;
+        window.instrument = document.getElementById('instrumentDropdown').value; // Change this
+        
         const tutorialBtn = document.getElementById('tutorial-btn');
         const tutorialContainer = document.getElementById('tutorial-container');
 
@@ -467,6 +497,8 @@
         const scoreTitle = document.getElementById('score-title').value;
         const timeSignatureNumerator = document.getElementById("numerator").value.trim();
         const timeSignatureDenominator = document.getElementById("denominator").value.trim();
+        window.timeSignNum = timeSignatureNumerator;
+        window.timeSignDenom = timeSignatureDenominator;
         const currentKeySignature =  document.getElementById("key-signature").value.trim();
         const tempo = document.getElementById('tempo').value / (document.getElementById("denominator").value / 4);
         const composition = {
@@ -525,6 +557,8 @@
                     notes = data.notes;
                     tempo = data.tempo;
                     window.tempoInt = data.tempo;
+                    window.timeSignNum = data.timeSignatureNumerator;
+                    window.timeSignDenom = data.timeSignatureDenominator;
                     renderNotes(); 
                     
                     //alert("Composition fetched successfully!");
@@ -1226,7 +1260,7 @@
             const numeratorInput = document.getElementById('numerator');
             const denominatorInput = document.getElementById('denominator');
             const tempoInput = document.getElementById('tempo');
-
+            const instrumentInput = document.getElementById('instrumentDropdown');
             // Event listener for "Enter" key on settings inputs
             scoreTitleInput.addEventListener('keydown', (event) => {
                 if (event.key === 'Enter') {
@@ -1234,7 +1268,11 @@
                     renderNotes(); 
                 }
             });
-
+            instrumentInput.addEventListener('click', (event) => { 
+                window.instrument = instrumentInput.value;
+                renderNotes();
+                
+            });
             keySignatureInput.addEventListener('keydown', (event) => {
                 if (event.key === 'Enter') {
                     const inputKey = keySignatureInput.value.trim();
@@ -1264,6 +1302,8 @@
                         } else {
                             timeSignatureNumerator = num;
                             timeSignatureDenominator = denom;
+                            window.timeSignNum = num;
+                            window.timeSignDenom = denom;
                             renderNotes(); 
                         }
                     }
@@ -1281,6 +1321,8 @@
                         } else {
                             timeSignatureNumerator = num;
                             timeSignatureDenominator = denom;
+                            window.timeSignNum = num;
+                            window.timeSignDenom = denom;
                             renderNotes(); 
                         }
                     }
@@ -1315,11 +1357,11 @@
             });
 
             // Close dropdown when clicking anywhere outside
-            document.addEventListener("click", (event) => {
-                if (!noteSelection.contains(event.target)) {
-                    noteOptions.style.display = "none";
-                }
-            });
+            //document.addEventListener("click", (event) => {
+             //   if (!noteSelection.contains(event.target)) {
+             //       noteOptions.style.display = "none";
+              //  }
+            //});
         });
         document.getElementById("rest-button").addEventListener("click", () => {
             isRestMode = !isRestMode; 
@@ -1415,7 +1457,7 @@
 
         renderNotes();
     </script>
-    <script src="ToneJS.js"></script>
+    <script src="ToneJS2.js"></script>
     <script>
         document.getElementById("doc-gen").addEventListener("click", () => {
             const staves = document.getElementById("my-stave");
@@ -1443,8 +1485,11 @@
             document.getElementById('key-signature').value = currentKeySignature;
             document.getElementById('numerator').value = timeSignatureNumerator;
             document.getElementById('denominator').value = timeSignatureDenominator;
+            window.timeSignDenom = timeSignatureDenominator;
+            window.timeSignNum = timeSignatureNumerator;
             document.getElementById('tempo').value = tempo;
             document.getElementById('tempo').value = window.tempoInt;
+            document.getElementById('instrumentDropdown').value = window.instrument;
         }
         
         //document.addEventListener("DOMContentLoaded", () => {
